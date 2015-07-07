@@ -1,0 +1,199 @@
+[dependencies]
+	python3
+	numpy
+	matplotlib
+
+[structure]
+The central call is the InputArgs class. This class handle all executioners and plotters. The method run() executes the input. Before the call of run(), InputArgs needs one data executioner and the definitions of the plots. To use the plotScripts, an object of this class needs to be created:
+		inputArgs = plotsScripts.InputArgs() 
+The executioner has to be assigned to the data field of the InputArgs object. All executioners must be derived from the BaseData class. Only one executioner can be active.
+		inputArgs.data = package.Executioner() 
+The plotter must be derived from the BasePlotter class. More than one plot can be used at one time with different names:
+		inputArgs.plot['name'] = plotter.subpackage.Plotter()
+Tables can create in a similar way, all table writers must be derived from BaseTableWriter. This is the only one available at the moment.
+		InputArgs.table['name'] = table.subpackage.TableWriter()
+
+Every object needs a method checkInput. This method has to be called in the class' processing method. The task of this method is to check the input. The  first thing to do in this method is to call the parent's checkInput method.
+
+[options]
+Options can be set either in the InputArgs object and will than be applied to all subobjects or they can be applied to single objects like a plotter or the data executioner. The syntax for options is :
+		object.options['obtionName'] = value
+Each class has defaults for all necessary options that will be activated, if no option is set. Also the default values will passed to later used objects, for example from the executioner to the plotters, so that the executioner can influence option like the axis scale. Every subobjects get the options the the higher object.
+
+General options for all classes:
+	debug: turns on debugging output
+	pathrepl: dict with characters replaced in filenames; default = {'.':'', ' ':'_', '//':'/', '-':'_'}
+	
+
+[executioner]
+The executioner read and prepare the data. Most executioner will probably read the data from a file, but it is also possible to use a database or other sources. Central methods of a executioner are process() and getData(). process() prepare all the data like reading from file. GetData() is used by the plotters to retrieve data from the executioner. It will ask the special implementation via the method getClassData() for the data. It will pass an index describing the data. The obtained data from the subclass is than treated with the specified method. Methods available at the moment: 
+	'value': for the actual value, 
+	'diff': for a difference to a base data set, 
+	'rel': for relative deviation to a base data set and 
+	'grad': for a gradient (carefull); 
+	'norm': normalize the value with the method specified in options, 
+	'rel_norm': normalize the values first and than perform the relative deviation
+	'diff_norm': normalize the values first and than perform the difference
+
+For some methods, base values are needed, that must be provided. 
+	object.basedata = [ind, ex]
+
+The index is passed as list and the structure is free to choose by the executioner. A tuple with two lists get x and y data from the executioner. If no x data is specified, the default x data from the plotter or from the executioner is taken, in this sequence. The last field is normally set by the plotter using the column field and refers to some sort of different columns available. 
+	object.input = [ [index, 1], ([x, index], [y, index]) ]
+
+The base executioner, and hence all derived classes, can prepare statistics depending on indices provided. This statistics include the average and the standard deviation. The columns field in the data executioner can be used for preparing column depending statistics, the weight field gives weights for the average calculation. Both field can be given for all or for each singe statistic. 
+	InputArgs.data.statistics['name'] = [[index, 1], [index, 2]]
+
+This is a list of all available executioners at the moment:
+	BaseData: Base class for all executioners; not runable
+		index: N/A
+		Fields:
+			xSteps: default x values
+			xLabel: default x label
+			yLabel: default y label
+			statistics: dict for statistics input lists
+			columns: a list with all columns used for statistics, can be overwritten for all or each single statistic, default may be set in the subclass for all columns
+			weights: a list of weights for statistics, same name than the statistic, can be omitted and is then assumed 1/N
+		options:
+			normalize: 'sum', 'avg', 'max'; normalize method for norm, rel_norm and diff_norm 
+			
+	
+	TestData: Simple executioner giving test data, either increasing or random; don't use column with this executioner
+		index: type, num
+			type: 'rnd', 'idx': either random or ascending data points
+			num: number of data points
+		
+
+	ColumnData: Reads a file with data in columns, each column needs the same amount of values, use nan for omit data
+		index: file, column
+			file: key of the file
+			column: column in the file, either heading or number
+		fields:
+			file: dict with the files
+		options:
+			dir: folder to search files in, default '.'
+			headings: None, True, False; flag if the file has headings
+
+	IndexData: Reads a file with index data; not implemented yet
+
+	XsData: Reads a xs file and calculate reaction rates and missing cross sections. 
+				Available fields for plotting are 'flux', 'total', 'diffusion', 'nufission', 'fission', 'absorption', 'chi', 'kappa', 'scattering', 'capture', 'removal', 'fission_rate', 'nufission_rate', 'total_rate', 'capture_rate', 'absorption_rate', 'removal_rate', 'k_inf', 'mfactor', 'flux_norm', 'power' 
+		index: file [, material [, groups]]
+			file: key for file
+			material: None, list, single number; select material, None for all, list for a list of materials or a single material number.
+			groups: None, list, nested list, single number; None for all, list for a selection, nested lists for condensation (inner list same things except nested) or a single group number
+		fields:
+			file: dict with the input files
+			groupStructure: energies for the group structure, can be shared for all files or for each file separatly by using the file key, N + 1 values expacted
+			volumes: volumes for flux normalization, same key as file and a list of volumes
+		options:
+			dir: folder to search files in, default '.'
+			cutoff: lower boundary for values, default 1e-10
+			flux_norm: normlize method for flux 'sum', 'avg', 'max'; default = 'sum'
+
+	ReactionRates: Subclass of xsdata, add support for flux and power files and cross section mapping.
+		index: same as XsData
+		fields: additionally to XsData fields
+			type: 'flux', 'pwr', 'xs'; type of a file, same key as file
+			xsfile: for all non xs files, the xs file to calculate reaction rates
+			xsMapping: for all file keys, the xs mapping, provide a material number for each value, the material is from the xsfile
+		options:
+			defaultType: xs, flux; the default type if type is not given for a key
+
+
+[plotter]
+The plotter writes the actual plot files. At the moment line and map plotters are available. They are divided by the engine they use. At the moment the map plotter is available for svg and the line plotter is available for matplotlib. All plotters must be derived from the BasePlotter. Two additional base classes, BaseLinePlot and BaseMapPlot provide the actual functionality and the special classes write only the files. The map plotters needs an geometry object described later. 
+
+List of plotter:
+	BasePlotter: Base class providing the interface; not runable
+		fields:
+			input: a list of indices, which shell be plotted; the index depends on the data executioner; a tuple provides (x,y) data, a list only y-values:
+				plotter.input = [([index, X], [index, Y]), [index, y]]
+			method: a list with all method to plot
+			column: A list of columns to plot, can be omitted, than the last entry of the index is taken as column.
+			Basedata: index for base data for difference and relative deviation.
+			Title: the title of the plot, if not the name of the plot is taken.
+			xLabel: x label, if omitted, executioner's x Label is used
+			yLabel: y label, if omitted, executioner's y Label is used
+			legend: list of legend strings, can be omitted but, or must have the same length as input
+		options:
+			plotdir: output dir, default '.'
+			title: flag if a title is added at the plot
+			size: list with 2 entries for the size of the plot in pixel, default [750, 500]
+			xScale: 'linear', 'log' scale of x axis
+			yScale: 'linear', 'log' scale of y axis
+			fontSize: clear, in point, default 12
+
+	BaseLinePlotter: Base class for all line plotter, creates the plot data and than passes to the special function writing.
+		Fields: inherited from BasePlotter
+			xValues: standard x values for the plot, if None then default from the data executioner will be taken, default = None
+		options:
+			style: line colors and styles; default ['r', 'b', 'g', 'y', 'm', 'c', 'k']
+			legendPos: legend position; default 'upper right'
+			grid: None, 'major', 'minor', 'both'; line grid style; default 'major'
+
+	BaseMapPlotter: Base class for all map plotters, pull the plot data and set everything up, the file is written by the special implementation
+		fields: inherited from BasePlotter
+			geometry: geometry object providing layout information
+			select: list to pick values out from the pulled data, default 1 to 1
+			assign: list to assign the values to the blocks, default is 1 to 1
+			transpose: flag to transpose the data matrix, default False
+		options:
+			extrema: list with 4 entries with the extrema, [x_min, x_max, y_min, y_max], an empty list calculates this from the geometry, default = []
+			mapFontSize: font size for values in map
+			colormap: type of color map, hsv only one at this time
+			sameLvls: flag to put the same levels on every plot; default False
+			overlay: overlay lines, default True
+			overlayText: text value overlay, default = True
+			numLvls: number of color steps in color map
+			zeroFix: True | False | 'middle' fixes nearest value to zero 
+			nanRegions: cut outer NaN regionsexactly on zeor, middle fixes middle of the value range to zero
+
+
+	matplotlib.LinePlotter: Inherited from BaseLinePlotter
+		fields:
+		options:
+			dpi: resolution in dpi; default 300
+			format: file format, for available formats refer to matplotlib doc; default svg
+	svg.MapPlotter: Inherited from BaseMapPlotter
+		fields:
+		options:
+			lineWidth: width of frame lines
+			stroke: stroke color for data fields
+			strokeWidth: strocke width
+			overlayWidth: overlay stroke width
+			text_lim_low: lower limit for value format strings
+			text_lim_mid: middle limit for value format strings
+			text_lim_up: upper limit for value format strings
+			text_for_low: lower value format string
+			text_for_mlow: lower middle value format string
+			text_for_mup: upper middle value format string
+			text_for_up: upper value format string
+			leg_lim_low: lower limit for value format strings for legend
+			leg_lim_mid: middle limit for value format strings for legend
+			leg_lim_up: upper limit for value format strings for legend
+			leg_for_low: lower value format string for legend
+			leg_for_mlow: lower middle value format string for legend
+			leg_for_mup: upper middle value format string for legend
+			leg_for_up: upper value format string for legend
+
+The colormap and axis classes are helper classes providing functions needed at the moment by the MapPlotter class. They don't have any field or options accessible from outside.  
+				
+[tableWriter]
+In the package table are writer for table formats. The only available class at the moment writes ascii tables or csv files.
+
+	BaseTableWriter: A basic table writer, super class for all table writers and the only available at the moment
+		Fields:
+			input: a list with indicies, the same format as for the plots, the dimension is restricted to 0d or 1d results, see ndim
+			columns: a list which columns to be printed, nested list with column and method allowing different method of one column in one table
+			basedata: the base data for the relative methods
+			title: the title of the table, mainly used for file name
+			headings: a list with the headings for the table, printed above each column
+			ndim: the dimension of the results, 0d and 1d are available, unpredictiable behavior if not machting the results
+		options:
+			rowHeadings: headings for each row for the 0d table, default = True
+			columnHeadings: headings for each column, default = True
+			transose: transpose the 1d table, default = True
+			tabledir: output dir for the table, default = './'
+			separator: separator between columns, default = '\t'
+
