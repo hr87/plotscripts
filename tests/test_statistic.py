@@ -14,11 +14,11 @@ print('I am alive')
 inputArg = plotscripts.InputArgs()
 # set a few options, will be passed to sub objects
 # this options are global, options also can be set in the sub objects
-inputArg.options['debug'] = True
-inputArg.options['plotdir'] = 'plot/data/' 
+inputArg._options['debug'] = True
+inputArg._options['plotdir'] = 'plot/data/'
 
 # create test data executioner
-inputArg.data = plotscripts.data.testdata.TestData()
+inputArg._data = plotscripts.data.testdata.TestData()
 
 # create some statistics, create sum, mean, stdDeviation, meanMax|Min = mean +- stdDeviation
 # the input is the same as for the plots
@@ -33,26 +33,26 @@ for idx in range(20):
    wheights.append(1.0/(idx + 1))
    
 # create statistics
-statistic = inputArg.data.Statistic()
+statistic = inputArg._data.Statistic()
 statistic.input    = inputList
 statistic.columns  = ['column']
 statistic.wheights = wheights
 statistic.method   = 'value'
 statistic.basedata = None
-inputArg.data.statistics['test'] = statistic
+inputArg._data.statistics['test'] = statistic
 
 # plot statistic in a line plot
 # the factor for avgMax/Min can be given as third parameter
-inputArg.plot['statistic'] = plotscripts.plotter.matplotlib.lineplotter.LinePlotter()
+inputArg._plots['statistic'] = plotscripts.plotter.matplotlib.lineplotter.LinePlotter()
 
 for data in [['test', 'avg'], ['test', 'avgMax', 1], ['test', 'avgMin', 0.5], ['test', 'max']]:
-   line = inputArg.plot['statistic'].Line()
+   line = inputArg._plots['statistic'].Line()
    line.data = data
    line.title = data[1]
-   inputArg.plot['statistic'].input.append(line) 
+   inputArg._plots['statistic'].input.append(line)
    
-inputArg.plot['statistic'].xValues  = list(range(10))
-inputArg.plot['statistic'].columns   = ['column']
+inputArg._plots['statistic'].xValues  = list(range(10))
+inputArg._plots['statistic'].columns   = ['column']
 
 #run the stuff
 inputArg.run()

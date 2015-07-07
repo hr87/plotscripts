@@ -27,8 +27,8 @@ class VHTRCTriangular(VHTRCHexagonal, Triangular):
 
     def __init__(self):
         super().__init__()
-        self.options['fontSizeOffset'] = 0
-        self.activateDefaults()
+        self._options['fontSizeOffset'] = 0
+        self._activateDefaults()
         self.select = None
 
     def setupClassGeometry(self):

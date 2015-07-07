@@ -4,12 +4,13 @@ Created on Apr 11, 2013
 @author: Hans R Hammer
 """
 
+import math
+import numpy
+
 from plotscripts.base.baseobject import BaseObject
 from plotscripts.base.basecontainer import BaseContainer
 from plotscripts.plotter.util.functions import axisDiv
 
-import math
-import numpy
 
 class BaseData(BaseObject):
     """
@@ -45,34 +46,40 @@ class BaseData(BaseObject):
             self._max       = {}
 
     def __init__(self):
-        """
-        Constructor
-        """
+        """ Constructor """
         super().__init__()
-        self.xSteps     = []             # list for xValues
+        self.xSteps     = []             # list for xValues TODO think about that
 
-        self.xLabel     = ''
+        self.xLabel     = ''             # TODO that too
         self.yLabel     = ''
 
-        self.statistics = {}             # index input for statistics views
+        self._statistics = {}             # index input for statistics views
         self.columns   = []              # columns to prepare statistics for
 
-        self.defaults['normalize']    = 'max'   # normalization, sum | avg | max
+        self._addDefault('normalize', 'max',
+                         'Normalization method: sum, avg, max', 'private')   # normalization,
 
         # internal
-        self.data       = {}             # data storage
+        self._data       = {}             # data storage
 
-
+    def addStatistic(self, name):
+        """ Add a statistic input
+        :param name: name of the statistic
+        :return: reference to statistic object
+        """
+        newStatistic = self.Statistic()
+        self._statistics[name] = newStatistic
+        return newStatistic
 
     def processData(self):
         """
         base method for data processing, called by inputArgs
         """
-        self.out('Processing data')
+        self._out('Processing data')
 
-        self.activateDefaults()
+        self._activateDefaults()
         # check the input
-        self.checkInput()
+        self._checkInput()
 
         # call data executioner process method
         self.processClassData()
@@ -80,20 +87,19 @@ class BaseData(BaseObject):
         # prepare statistics
         self.calcSpecialData()
 
-
     def processClassData(self):
         """ Virtual method to be overwritten by the implementation
         :return: None
         """
-        raise self.exception('Data processing not implemented yet')
+        raise self._exception('Data processing not implemented in base class')
 
     def calcSpecialData(self):
         """
         function to calculate statistics
         """
-        self.out('Preparing statistics')
+        self._out('Preparing statistics')
         # loop over all inputs
-        for key, statistic in self.statistics.items():
+        for key, statistic in self._statistics.items():
             try:
                 for column in statistic.columns:
                     for idx, index in enumerate(statistic.input):
@@ -106,7 +112,6 @@ class BaseData(BaseObject):
                             statistic.sum[column] = numpy.zeros(tmpData.shape)
                             statistic.min[column] = numpy.zeros(tmpData.shape)
                             statistic.max[column] = numpy.zeros(tmpData.shape)
-
 
                         # add values
                         statistic.sum[column] += tmpData
@@ -126,55 +131,54 @@ class BaseData(BaseObject):
                     # sqrt
                     statistic.stdDeviation[column] = numpy.sqrt(statistic.stdDeviation[column])
             except self.Exception as e:
-                raise self.exception('Could not calculat statistic {0}'.format(key)) from e
-
+                raise self._exception('Could not calculate statistic {0}'.format(key)) from e
 
     def getSpecialData(self, index):
         """
         Method for getting precalculated data like statistics
+        :param index: the search index for the data
         """
 
         # no statistic
-        if not index[0] in self.statistics:
+        if not index[0] in self._statistics:
             return False, None
         if len(index) < 3:
-            raise self.exception('Index to short for statistics: {0}'.format(index))
+            raise self._exception('Index to short for statistics: {0}'.format(index))
 
         # get column
         column = index[-1]
 
-
         try:
             if index[1] == 'avg':
-                return True, self.statistics[index[0]].avg[column]
+                return True, self._statistics[index[0]].avg[column]
             elif index[1] == 'sum':
-                return True, self.statistics[index[0]].sum[column]
+                return True, self._statistics[index[0]].sum[column]
             elif index[1] == 'min':
-                return True, self.statistics[index[0]].min[column]
+                return True, self._statistics[index[0]].min[column]
             elif index[1] == 'max':
-                return True, self.statistics[index[0]].max[column]
+                return True, self._statistics[index[0]].max[column]
             elif index[1] == 'stdDeviation':
-                return True, self.statistics[index[0]].stdDeviation[column]
+                return True, self._statistics[index[0]].stdDeviation[column]
             elif index[1] == 'avgMax':
                 if len(index) > 3:
                     factor = index[2]
                 else:
                     factor = 1
-                return True, self.statistics[index[0]].avg[column] + factor * self.statistics[index[0]].stdDeviation[column]
+                return True, self._statistics[index[0]].avg[column] + factor * self._statistics[index[0]].stdDeviation[column]
             elif index[1] == 'avgMin':
                 if len(index) > 3:
                     factor = index[2]
                 else:
                     factor = 1
-                return True, self.statistics[index[0]].avg[column] - factor * self.statistics[index[0]].stdDeviation[column]
+                return True, self._statistics[index[0]].avg[column] - factor * self._statistics[index[0]].stdDeviation[column]
         except KeyError as e:
-            raise self.exception('Unknown key for statistics') from e
+            raise self._exception('Unknown key for statistics') from e
         except IndexError as e:
-            raise self.exception('Wrong index for statistics') from e
+            raise self._exception('Wrong index for statistics') from e
 
         return False, None
 
-    def getData(self, index, meth='value', base=None, x=None):
+    def getData(self, index, method='value', base=None, x=None):
         """
         Get the data out of the database
 
@@ -184,15 +188,15 @@ class BaseData(BaseObject):
         rel (base needed)
         grad () gradient of data, x values changed
 
-        @param index: list with index of data
-        @param meth: method for data processing, default = value
-        @param base: list with index for base data needed for some methods, default = None
-        @param x: x values for some methods, may be changed, default = None
-        @return: numpy array with data
+        :param index: list with index of data
+        :param method: method for data processing, default = value
+        :param base: list with index for base data needed for some methods, default = None
+        :param x: x values for some methods, may be changed, default = None
+        :return: numpy array with data
         """
 
         # check the length of index
-        self.debug('Getting data for {0} {1}; base {2}'.format(index, meth, base))
+        self._debug('Getting data for {0} {1}; base {2}'.format(index, method, base))
 
         column = index[-1]
 
@@ -202,25 +206,25 @@ class BaseData(BaseObject):
         # we need to get data from the database
         if not check:
             # get normalized data
-            if meth in ['rel_norm', 'diff_norm']:
+            if method in ['rel_norm', 'diff_norm']:
                 values = self.getData(index, 'norm', None)
             else:
                 values = self.getClassData(index)
 
-        if meth == 'grad':
-            if x == None :
-                raise self.exception('x values needed for gradient')
+        if method == 'grad':
+            if x is None :
+                raise self._exception('x values needed for gradient')
             x = self.enchantX(x)
 
             # which type of base data
-        if meth in ['rel_norm', 'diff_norm']:
+        if method in ['rel_norm', 'diff_norm']:
             baseMeth = 'norm'
         else:
             baseMeth = 'value'
 
         # try to get data and base data
         if base != None :
-            self.debug('Getting base data')
+            self._debug('Getting base data')
             if base.__class__ == tuple:
                 baseValues = self.getData(list(base[1]) + [column], baseMeth)
                 baseX = self.getData(base[0])
@@ -231,17 +235,17 @@ class BaseData(BaseObject):
             baseValues = None
 
         if values.dtype == numpy.dtype('object'):
-            raise self.exception('Data shape is not rectangular')
-        if baseValues != None and baseValues.dtype == numpy.dtype('object'):
-            raise self.exception('Base data shape is not rectangular')
+            raise self._exception('Data shape is not rectangular')
+        if baseValues is not None and baseValues.dtype == numpy.dtype('object'):
+            raise self._exception('Base data shape is not rectangular')
 
         # check for base data, if we need it
-        if meth in ['diff', 'rel', 'rel_norm', 'diff_norm'] :
-            if base == None :
-                raise self.exception('Base data needed for method: ' + str(meth))
+        if method in ['diff', 'rel', 'rel_norm', 'diff_norm'] :
+            if base is None :
+                raise self._exception('Base data needed for method: ' + str(method))
 
             # try interpolations
-            if x != None and baseValues.ndim > 0 and baseX != None:
+            if x is not None and baseValues.ndim > 0 and baseX is not None:
                 # sort x and base values increasing
                 sortX = numpy.argsort(x)
                 x = x[sortX]
@@ -255,36 +259,37 @@ class BaseData(BaseObject):
                 # undo sort
                 baseValues = baseValues[numpy.argsort(sortBase)]
 
-            elif x == None:
-                self.warning('Cannot interpolate')
+            elif x is None:
+                self._warning('Cannot interpolate')
 
         # calculate difference and deviations
-        values = self.calc(x, values, meth, baseValues)
+        values = self.calc(x, values, method, baseValues)
 
         return values
 
-    def calc(self, x, y, meth, base_values):
+    def calc(self, x, y, method, base_values):
         # decide what to do
-        if meth == 'value':     # normal value
+        if method == 'value':     # normal value
             pass
-        elif meth == 'norm' :
+        elif method == 'norm' :
             # normalize value if necessary
-            if self.options['normalize'] == 'avg':
+            normMethod = self._getOption('normalize')
+            if normMethod == 'avg':
                 y /= y[~numpy.isnan(y)].mean()
-            elif self.options['normalize'] == 'max':
+            elif normMethod == 'max':
                 y /= numpy.nanmax(y)
-            elif self.options['normalize'] == 'sum':
+            elif normMethod == 'sum':
                 y /= numpy.nansum(y)
             else:
-                raise self.exception('Unknown normalize function {0}'.format(self.options['normalize']))
-        elif meth in ['diff', 'diff_norm'] :           # difference
+                raise self._exception('Unknown normalize function {0}'.format(normMethod))
+        elif method in ['diff', 'diff_norm'] :           # difference
             y = y - base_values
-        elif meth in ['rel', 'rel_norm'] :             # relative deviation
+        elif method in ['rel', 'rel_norm'] :             # relative deviation
             y = (y - base_values) / base_values * 100
-        elif meth == 'grad' :           # gradient
+        elif method == 'grad' :           # gradient
             y = (y[:-1] - y[1:]) / (x[:-1] - x[1:])
         else :
-            raise self.exception('Unknown method ' + str(meth))
+            raise self._exception('Unknown method ' + str(method))
 
         return y.squeeze()
 
@@ -338,14 +343,13 @@ class BaseData(BaseObject):
                 # replace value nearer to zero with zero
         elif zeroFix:
             if valuesMax > 0 and valuesMin < 0:
-                raise self.exception('Fixed zero not possible')
+                raise self._exception('Fixed zero not possible')
             elif valuesMax <= 0:
                 valuesMax = 0
             elif valuesMin >= 0:
                 valuesMin = 0
 
         return numpy.linspace(valuesMin, valuesMax, numSteps+1, True)
-
 
     def getXValues(self, index, column) :
         """
@@ -375,8 +379,7 @@ class BaseData(BaseObject):
         else :
             return self.yLabel
 
-
-    def checkInput(self):
+    def _checkInput(self):
         """
         check the input and convert if necessary
         """
@@ -389,25 +392,25 @@ class BaseData(BaseObject):
 
         # check statistic input
         # check dict
-        if not self.statistics.__class__ == dict:
-            raise self.exception('Statistics must be a dictionary!')
+        if not self._statistics.__class__ == dict:
+            raise self._exception('Statistics must be a dictionary!')
 
         if not self.columns.__class__ == list:
-            raise self.exception('Columns must be a list')
+            raise self._exception('Columns must be a list')
 
-        for key, statistic in self.statistics.items():
+        for key, statistic in self._statistics.items():
             if statistic.__class__ != self.Statistic:
-                raise self.exception('Wrong class for statistic {0}'.format(key))
+                raise self._exception('Wrong class for statistic {0}'.format(key))
             if statistic.input.__class__ != list:
-                raise self.exception('Statistic index must be a list for statistic {0}'.format(key))
+                raise self._exception('Statistic index must be a list for statistic {0}'.format(key))
 
             # test for column per statistic
             if statistic.columns.__class__ != list:
-                raise self.exception('Column list must be a list')
+                raise self._exception('Column list must be a list')
             if statistic.columns == []:
                 if self.columns != []:
                     statistic.columns = list(self.columns)
                 else:
-                    raise self.exception('No default and no statistic columns given for {0}'.format(key))
+                    raise self._exception('No default and no statistic columns given for {0}'.format(key))
             if statistic.weights == []:
                 statistic.weights = [1/len(statistic.input)] * len(statistic.input)

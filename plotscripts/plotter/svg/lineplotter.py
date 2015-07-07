@@ -20,25 +20,25 @@ class LinePlotter(BaseLinePlotter):
 
     def plot(self) :
         # test for input
-        self.checkInput()
+        self._checkInput()
 
         for method in self.method :
             # create path
-            path = self.cleanPath('/{0}/{1}/'.format(self.title, method))
+            path = self._cleanPath('/{0}/{1}/'.format(self.title, method))
 
             # create dir for output
             try :
                 os.makedirs(path, exist_ok=True)
             except OSError as e:
-                raise self.exception('Could not create directory ' + path ) from e
+                raise self._exception('Could not create directory ' + path ) from e
 
             for column in self.column :
                 # open file
-                filename = self.cleanFileName('{0}_{1}_{2}'.format(self.title, method, column)) + '.svg'
+                filename = self._cleanFileName('{0}_{1}_{2}'.format(self.title, method, column)) + '.svg'
                 try :
                     f_plot = open(path + filename, 'w')
                 except IOError as e:
-                    raise self.exception('Could not open file ' + filename ) from e
+                    raise self._exception('Could not open file ' + filename ) from e
 
                 try :
                     # write svg header
@@ -56,7 +56,7 @@ class LinePlotter(BaseLinePlotter):
                     self.writeAxix(f_plot)
 
                 except IOError as e:
-                    raise self.exception('Error writing file ' + filename ) from e
+                    raise self._exception('Error writing file ' + filename ) from e
                 finally:
                     f_plot.close()
 

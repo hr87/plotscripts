@@ -25,8 +25,8 @@ class ColumnData(BaseData):
         super().__init__()
 
         self.file       = {}                   # file names
-        self.defaults['dir']          = '.'    # folder to look for files
-        self.defaults['headings']     = None
+        self._addDefault('dir', '.', 'folder to look for files', 'private')
+        self._addDefault('headings', None, 'Cannot remember', 'private')
 
     def processClassData(self):
         """
@@ -41,23 +41,23 @@ class ColumnData(BaseData):
         base interface method for plotter to get data, returns the corresponding data for file index, column index
         methods available are: value, rel, diff
         index: file, column
-        @param index: list with index of data
-        @param meth: method for data processing, default = value
-        @param base: list with index for base data needed for some methods, default = None
-        @param x: x values for some methods, may be changed, default = None
-        @return: numpy array with data
+        :param index: list with index of data
+        :param meth: method for data processing, default = value
+        :param base: list with index for base data needed for some methods, default = None
+        :param x: x values for some methods, may be changed, default = None
+        :return: numpy array with data
         """
-        try :
+        try:
             filekey = index[0]
             column = index[1]
         except IndexError as e:
-            raise self.exception('Wrong index: ' + str(index)) from e
+            raise self._exception('Wrong index: ' + str(index)) from e
 
-            # get values
-        try :
-            values = self.data[filekey][column].copy()
+        # get values
+        try:
+            values = self._data[filekey][column].copy()
         except IndexError as e:
-            raise self.exception('No values for: ' + str(filekey) + ' column: ' + str(column) + '\n') from e
+            raise self._exception('No values for: ' + str(filekey) + ' column: ' + str(column) + '\n') from e
 
         return values
 
@@ -65,18 +65,18 @@ class ColumnData(BaseData):
         """
         function to read input files, recognize headings in files
         """
-        self.out('Reading files')
+        self._out('Reading files')
 
         # for all input files
         for filekey in self.file.keys() :
             # open file
             try :
-                ifile = open(self.options['dir'] + '/' + self.file[filekey], 'r')
+                ifile = open(self._getOption('dir') + '/' + self.file[filekey], 'r')
             except IOError as e :
-                raise self.exception('Could not open file: ' + self.options['dir'] + '/' + self.file[filekey] + '\n') from e
+                raise self._exception('Could not open file: ' + self._getOption('dir') + '/' + self.file[filekey] + '\n') from e
 
             # create storage
-            self.data[filekey] = {}
+            self._data[filekey] = {}
 
             # read first line
             line = ifile.readline()
@@ -88,10 +88,10 @@ class ColumnData(BaseData):
             # test for headings
             idx = 1
             # not sure if there are headings
-            if self.options['headings'] == None:
+            if self._getOption('headings') is None:
                 try :
                     # headings, go to headings part, dirty
-                    if self.options['headings'] == True:
+                    if self._getOption('headings') == True:
                         raise ValueError
 
                     for value in lineData :
@@ -99,22 +99,22 @@ class ColumnData(BaseData):
                         value = float(value)
 
                         # create column in storage and assign value
-                        self.data[filekey][idx] = []
-                        self.data[filekey][idx].append(value)
+                        self._data[filekey][idx] = []
+                        self._data[filekey][idx].append(value)
                         headings.append(idx)
                         idx += 1
 
                 # cannot convert all values
                 except ValueError :
                     # print message and store headings
-                    self.out('found headings in file: ' + str(filekey))
+                    self._out('found headings in file: ' + str(filekey))
                     headings = lineData
 
                     # reset storage
-                    self.data[filekey] = {}
+                    self._data[filekey] = {}
 
                     for heading in headings :
-                        self.data[filekey][heading] = []
+                        self._data[filekey][heading] = []
 
             for line in ifile :
                 if not line.strip():
@@ -126,13 +126,13 @@ class ColumnData(BaseData):
                 try :
                     for idx in range(0, len(headings)) :
                         # store values
-                        self.data[filekey][headings[idx]].append(float(lineData[idx]))
+                        self._data[filekey][headings[idx]].append(float(lineData[idx]))
                 # conversion error
                 except ValueError as e:
-                    raise self.exception('Conversion to float of ' + str(lineData[idx]) + ' failed!') from e
+                    raise self._exception('Conversion to float of ' + str(lineData[idx]) + ' failed!') from e
                 except IndexError as e:
-                    raise self.exception('Wrong number of values in one line') from e
+                    raise self._exception('Wrong number of values in one line') from e
 
             # convert data in numpy vectors
-            for key in self.data[filekey].keys() :
-                self.data[filekey][key] = numpy.array(self.data[filekey][key])
+            for key in self._data[filekey].keys() :
+                self._data[filekey][key] = numpy.array(self._data[filekey][key])

@@ -40,7 +40,7 @@ class HexagonalXY(BaseXYGeometry, Hexagonal):
    def getClassOverlayTypes(self):
       Hexagonal.getClassOverlayTypes(self)
    
-   def checkInput(self):
-      super().checkInput(self)
+   def _checkInput(self):
+      super()._checkInput(self)
    
       

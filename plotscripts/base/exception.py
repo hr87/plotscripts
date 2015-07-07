@@ -18,8 +18,7 @@ class PlotscriptException(Exception):
     msg = None
 
     def __init__(self, module, function, msg):
-        """
-        Constructor
+        """ Constructor
         :param module: Calling module name
         :param function: Calling function name
         :param msg: message text

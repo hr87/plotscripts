@@ -20,33 +20,33 @@ class MapPlotter(BaseMap):
         Constructor
         """
         super().__init__()
-        self.defaults['lineWidth']       = 0.5       # width of frame lines
-        self.defaults['stroke']          = None      # stroke color for data fields
-        self.defaults['strokeWidth']     = 1         # strocke width
-        self.defaults['overlayWidth']    = 1         # overlay stroke width
+        self._defaults['lineWidth']       = 0.5       # width of frame lines
+        self._defaults['stroke']          = None      # stroke color for data fields
+        self._defaults['strokeWidth']     = 1         # strocke width
+        self._defaults['overlayWidth']    = 1         # overlay stroke width
 
         # setting for text overlay
-        self.defaults['text_lim_low'] = 0.01      # lower limit for value format strings
-        self.defaults['text_lim_mid'] = 1         # middle limit for value format strings
-        self.defaults['text_lim_up']  = 1000      # upper limit for value format strings
+        self._defaults['text_lim_low'] = 0.01      # lower limit for value format strings
+        self._defaults['text_lim_mid'] = 1         # middle limit for value format strings
+        self._defaults['text_lim_up']  = 1000      # upper limit for value format strings
 
-        self.defaults['text_for_low'] = '{0:.2e}' # lower value format string
-        self.defaults['text_for_mlow']= '{0:.1f}' # lower middle value format string
-        self.defaults['text_for_mup'] = '{0:.2f}' # upper middle value format string
-        self.defaults['text_for_up']  = '{0:.2e}' # upper value format string
+        self._defaults['text_for_low'] = '{0:.2e}' # lower value format string
+        self._defaults['text_for_mlow']= '{0:.1f}' # lower middle value format string
+        self._defaults['text_for_mup'] = '{0:.2f}' # upper middle value format string
+        self._defaults['text_for_up']  = '{0:.2e}' # upper value format string
 
         # setting for axis and legend
-        self.defaults['leg_lim_low'] = 0.01       # lower limit for value format strings
-        self.defaults['leg_lim_mid'] = 1          # middle limit for value format strings
-        self.defaults['leg_lim_up']  = 1e4        # upper limit for value format strings
+        self._defaults['leg_lim_low'] = 0.01       # lower limit for value format strings
+        self._defaults['leg_lim_mid'] = 1          # middle limit for value format strings
+        self._defaults['leg_lim_up']  = 1e4        # upper limit for value format strings
 
-        self.defaults['leg_for_low'] = '{0:.2e}'  # lower value format string
-        self.defaults['leg_for_mlow']= '{0:g}'    # lower middle value format string
-        self.defaults['leg_for_mup'] = '{0:g}'    # upper middle value format string
-        self.defaults['leg_for_up']  = '{0:.2e}'  # upper value format string
+        self._defaults['leg_for_low'] = '{0:.2e}'  # lower value format string
+        self._defaults['leg_for_mlow']= '{0:g}'    # lower middle value format string
+        self._defaults['leg_for_mup'] = '{0:g}'    # upper middle value format string
+        self._defaults['leg_for_up']  = '{0:.2e}'  # upper value format string
 
     def writeFile(self, path, filename, values, lvls, title = None):
-        self.out('Writing file {0}'.format(filename))
+        self._out('Writing file {0}'.format(filename))
         # setting up some vars
         pos_title       = [0.5, 0.03]
         pos_x_label     = 0.98
@@ -56,8 +56,8 @@ class MapPlotter(BaseMap):
         pos_cb_labels   = 0.02
 
         # setting up axis
-        x_size          = self.options['size'][0]
-        y_size          = self.options['size'][1]
+        x_size          = self._options['size'][0]
+        y_size          = self._options['size'][1]
 
         xAxis           = Axis(x_size, 0.1, 0.75, 0.0125)
         yAxis           = Axis(y_size, 0.1, 0.9, 0.0125, True)
@@ -76,41 +76,41 @@ class MapPlotter(BaseMap):
                 textPoints  = textPoints[self.assign, :]
                 pathTypes   = [pathTypes[idx] for idx in self.assign]
             except IndexError as e:
-                raise self.exception('Wrong assignment to blocks') from e
+                raise self._exception('Wrong assignment to blocks') from e
 
         if not values.shape[0] == valuePaths.shape[0]:
-            raise self.exception('Non matching number of values for geometry. Values {0[0]}, geometry {1}'.format(values.shape, valuePaths.shape[0]))
+            raise self._exception('Non matching number of values for geometry. Values {0[0]}, geometry {1}'.format(values.shape, valuePaths.shape[0]))
 
-        if self.options['extrema'] == []:
+        if self._options['extrema'] == []:
             # get extrema with or without the nan regions
-            if self.options['nanRegions']:
+            if self._options['nanRegions']:
                 extrema         = self.geometry.getExtrema(valuePaths, None)
             else:
                 extrema         = self.geometry.getExtrema(valuePaths, values)
 
-            if self.options['sameExtrema']:
+            if self._options['sameExtrema']:
                 extrema[0] = min(extrema[0], extrema[2])
                 extrema[1] = max(extrema[1], extrema[3])
                 extrema[2] = extrema[0]
                 extrema[3] = extrema[1]
         else:
-            extrema = self.options['extrema']
+            extrema = self._options['extrema']
 
         xAxis.setAxis(extrema[0], extrema[1])
         yAxis.setAxis(extrema[2], extrema[3])
 
         # set up color map
-        colormap        = Colormap(self.options['colormap'])
+        colormap        = Colormap(self._options['colormap'])
         colormap.create(lvls)
         colormap.setupGeometry([0.83, 0.1], [0.88, 0.9], 0.0125)
 
         # font size
         #TODO get scale from axis
-        fontSize        = self.options['fontSize']
-        mapFontSize     = self.options['mapFontSize']
+        fontSize        = self._options['fontSize']
+        mapFontSize     = self._options['mapFontSize']
         fontOffset      = fontSize / 4
         if mapFontSize <= 0:
-            self.warning('Map font size = {0}, setting to 1!'.format(mapFontSize))
+            self._warning('Map font size = {0}, setting to 1!'.format(mapFontSize))
             mapFontSize = 1
 
         # scale points
@@ -125,7 +125,7 @@ class MapPlotter(BaseMap):
         try :
             svgFile = open(path + '/' + filename + '.svg', 'w')
         except IOError as e:
-            raise self.exception('Could not open file ' + filename + '.svg' ) from e
+            raise self._exception('Could not open file ' + filename + '.svg' ) from e
 
         # write file
         try:
@@ -142,25 +142,25 @@ class MapPlotter(BaseMap):
                 color = colormap.getColor(values[idx])
 
                 tmpStr = self.createPath(pathTypes[idx], valuePaths[idx, :, :], color,
-                                         self.options['stroke'], self.options['strokeWidth'])
+                                         self._options['stroke'], self._options['strokeWidth'])
 
                 svgFile.write(tmpStr)
             svgFile.write('</g>\n')
 
             # write overlay
-            if self.options['overlay']:
+            if self._options['overlay']:
                 svgFile.write('<g id="overlay">\n')
                 for idx in range(overlayPaths.shape[0]):
                     color = colormap.getOverlayColor()
 
                     tmpStr = self.createPath(overlayTypes[idx], overlayPaths[idx, :, :],
-                                             None, color, self.options['overlayWidth'])
+                                             None, color, self._options['overlayWidth'])
 
                     svgFile.write(tmpStr)
                 svgFile.write('</g>\n')
 
             # write text overlay
-            if self.options['overlayText']:
+            if self._options['overlayText']:
                 svgFile.write('<g id="overlay_text">\n')
                 for idx in range(textPoints.shape[0]):
                     if not math.isnan(values[idx]):
@@ -176,7 +176,7 @@ class MapPlotter(BaseMap):
                 svgFile.write('</g>\n')
 
             # write title
-            if self.options['title'] and title != None:
+            if self._options['title'] and title != None:
                 tmpStr = '<text x="{0:.0f}" y="{1:.0f}" font-size = "{2}" text-anchor="middle" fill="black">{3}</text>\n'.format(
                     pos_title[0] * x_size,
                     pos_title[1] * y_size + fontOffset,
@@ -197,12 +197,12 @@ class MapPlotter(BaseMap):
                 tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
                     ticPos[idx], ticStart,
                     ticPos[idx], ticEnd,
-                    self.options['lineWidth'])
+                    self._options['lineWidth'])
                 svgFile.write(tmpStr)
                 tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
                     ticPos[idx], ticStart2,
                     ticPos[idx], ticEnd2,
-                    self.options['lineWidth'])
+                    self._options['lineWidth'])
                 svgFile.write(tmpStr)
 
                 value = self.formatValue('leg', tics[idx])
@@ -224,12 +224,12 @@ class MapPlotter(BaseMap):
                 tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
                     ticStart, ticPos[idx],
                     ticEnd, ticPos[idx],
-                    self.options['lineWidth'])
+                    self._options['lineWidth'])
                 svgFile.write(tmpStr)
                 tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
                     ticStart2, ticPos[idx],
                     ticEnd2, ticPos[idx],
-                    self.options['lineWidth'])
+                    self._options['lineWidth'])
                 svgFile.write(tmpStr)
 
                 value = self.formatValue('leg', tics[idx])
@@ -243,7 +243,7 @@ class MapPlotter(BaseMap):
             tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {1:.0f} L {2:.0f} {3:.0f} L {0:.0f} {3:.0f} L {0:.0f} {1:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
                 xAxis.getStart(), yAxis.getStart(),
                 xAxis.getEnd(), yAxis.getEnd(),
-                self.options['lineWidth'])
+                self._options['lineWidth'])
 
             svgFile.write(tmpStr)
 
@@ -285,14 +285,14 @@ class MapPlotter(BaseMap):
                     colormap.xStart * x_size,
                     colormap.legendPos[idx] * y_size,
                     (colormap.xStart + colormap.ticLength) * x_size,
-                    self.options['lineWidth'])
+                    self._options['lineWidth'])
                 svgFile.write(tmpStr)
 
                 tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {1:.0f} " stroke = "black" stroke-width = "{3}" fill = "none"/>\n'.format(
                     (colormap.xEnd  - colormap.ticLength) * x_size,
                     colormap.legendPos[idx] * y_size,
                     colormap.xEnd * x_size,
-                    self.options['lineWidth'])
+                    self._options['lineWidth'])
                 svgFile.write(tmpStr)
 
             # legend
@@ -311,7 +311,7 @@ class MapPlotter(BaseMap):
                 colormap.yStart * y_size,
                 colormap.xEnd * x_size,
                 colormap.yEnd * y_size,
-                self.options['lineWidth'])
+                self._options['lineWidth'])
 
             svgFile.write(tmpStr)
             svgFile.write('</g>\n')
@@ -320,7 +320,7 @@ class MapPlotter(BaseMap):
             svgFile.write('</svg>\n')
 
         except IOError as e:
-            raise self.exception('Error writing file ' + filename ) from e
+            raise self._exception('Error writing file ' + filename ) from e
         finally:
             # close file
             svgFile.close()
@@ -353,11 +353,11 @@ class MapPlotter(BaseMap):
             tmpStr = '<path d = "M {0:.0f} {1:.0f}'.format(path[0, 0],
                                                            path[1, 0])
 
-            raise self.exception('Work in progress')
+            raise self._exception('Work in progress')
 
         # and gone
         else:
-            raise self.exception('Unknown overlay type')
+            raise self._exception('Unknown overlay type')
 
         # write design attributes
         if strokeColor == None:
@@ -381,14 +381,14 @@ class MapPlotter(BaseMap):
         Function to format values according to the options
         """
         if value == 0.0:
-            value = self.options[valueType + '_for_mlow'].format(value)
-        elif abs(value) < self.options[valueType + '_lim_low']:
-            value = self.options[valueType + '_for_low'].format(value)
-        elif abs(value) < self.options['leg_lim_mid'] :
-            value = self.options[valueType + '_for_mlow'].format(value)
-        elif abs(value) < self.options['leg_lim_up']:
-            value = self.options[valueType + '_for_mup'].format(value)
+            value = self._options[valueType + '_for_mlow'].format(value)
+        elif abs(value) < self._options[valueType + '_lim_low']:
+            value = self._options[valueType + '_for_low'].format(value)
+        elif abs(value) < self._options['leg_lim_mid'] :
+            value = self._options[valueType + '_for_mlow'].format(value)
+        elif abs(value) < self._options['leg_lim_up']:
+            value = self._options[valueType + '_for_mup'].format(value)
         else:
-            value = self.options[valueType + '_for_up'].format(value)
+            value = self._options[valueType + '_for_up'].format(value)
 
         return value

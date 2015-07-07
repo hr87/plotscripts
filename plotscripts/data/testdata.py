@@ -11,11 +11,12 @@ import random
 
 from plotscripts.data.basedata import BaseData
 
+
 class TestData(BaseData):
     def processClassData(self):
         pass
 
-    def getClassData(self, index, meth='value', base=None, x=None):
+    def getClassData(self, index, method='value', base=None, x=None):
         """
         creates dummmy data
         index: [type, num]
@@ -25,7 +26,7 @@ class TestData(BaseData):
         """
 
         if len(index) < 2:
-            raise self.exception('WTF, there are only two values necessary and you screwed it up')
+            raise self._exception('WTF, there are only two values necessary and you screwed it up')
 
         # get index
         num   = index[1]
@@ -35,7 +36,7 @@ class TestData(BaseData):
         random.seed()
 
         # create value array
-        values = numpy.zeros((num))
+        values = numpy.zeros(num)
 
         # fill it
         for idx in range(num):

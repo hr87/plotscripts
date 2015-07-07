@@ -28,12 +28,12 @@ class BasePlotter(BaseObject):
       self.yLabel     = None  # y label
   
       # default path and filename options
-      self.defaults['plotdir']     = '.'
-      self.defaults['title']       = True
-      self.defaults['size']        = [750, 500]
-      self.defaults['xScale']      = 'linear'
-      self.defaults['yScale']      = 'linear'
-      self.defaults['fontSize']    = 12
+      self._defaults['plotdir']     = '.'
+      self._defaults['title']       = True
+      self._defaults['size']        = [750, 500]
+      self._defaults['xScale']      = 'linear'
+      self._defaults['yScale']      = 'linear'
+      self._defaults['fontSize']    = 12
       
       # internal 
       self.data       = None  # storage for data
@@ -43,7 +43,7 @@ class BasePlotter(BaseObject):
       '''
       base method for plotting
       '''
-      raise self.exception('Plotting method not implemented yet in ' + self.__class__.__name__)
+      raise self._exception('Plotting method not implemented yet in ' + self.__class__.__name__)
    
    def setTitle(self, title):
       if self.title == None :
@@ -51,9 +51,9 @@ class BasePlotter(BaseObject):
       else :
          self.title = str(self.title)
              
-   def checkInput(self):
+   def _checkInput(self):
       if self.input == [] :
-         raise self.exception('No input data specified')
+         raise self._exception('No input data specified')
       
       if self.method == [] :
          self.method = ['value']
@@ -66,5 +66,5 @@ class BasePlotter(BaseObject):
          self.columns = [self.columns]
         
       for tmpInput in self.input:
-         tmpInput.checkInput()
+         tmpInput._checkInput()
       

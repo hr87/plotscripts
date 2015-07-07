@@ -20,10 +20,10 @@ class LinePlotter(BaseLinePlotter):
         return ''
 
     def writeFile(self, path, filename, title, lines, column, method = 'value'):
-        self.out('Creating plot {0}'.format(filename))
+        self._out('Creating plot {0}'.format(filename))
 
         # open file
         try :
             texFile = open(path + '/' + filename + '.tex', 'w')
         except IOError as e:
-            raise self.exception('Could not open file ' + filename ) from e
+            raise self._exception('Could not open file ' + filename ) from e

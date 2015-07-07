@@ -78,7 +78,7 @@ class Hexagonal(BaseGeometry):
         calculating center points of an hexagonal grid 
         """
 
-        self.debug('Calculating points')
+        self._debug('Calculating points')
 
         # calc inner and outer radius
         r = pitch / 2.0
@@ -132,11 +132,11 @@ class Hexagonal(BaseGeometry):
 
         return hexPoints
 
-    def checkInput(self):
-        BaseGeometry.checkInput(self)
+    def _checkInput(self):
+        BaseGeometry._checkInput(self)
 
         if self.ringEnd == None:
-            raise self.exception('No end ring number')
+            raise self._exception('No end ring number')
 
         if self.pitch == None :
-            raise self.exception('No pitch')
+            raise self._exception('No pitch')

@@ -18,8 +18,8 @@ class LinePlotter(BaseLinePlotter):
         """
         super().__init__()
 
-        self.defaults['dpi']         = 300
-        self.defaults['format']      = 'svg'
+        self._defaults['dpi']         = 300
+        self._defaults['format']      = 'svg'
 
     def getStyle(self, line):
         """
@@ -28,13 +28,13 @@ class LinePlotter(BaseLinePlotter):
         return ''
 
     def writeFile(self, path, filename, title, lines, column, method = 'value'):
-        self.out('Creating plot {0}'.format(filename))
+        self._out('Creating plot {0}'.format(filename))
 
         # create figure
         fig = plt.figure()
-        fig.set_dpi(self.options['dpi'])
-        fig.set_size_inches(self.options['size'][0] / self.options['dpi']*5/1.5,
-                            self.options['size'][1] / self.options['dpi']*5/1.5,
+        fig.set_dpi(self._options['dpi'])
+        fig.set_size_inches(self._options['size'][0] / self._options['dpi']*5/1.5,
+                            self._options['size'][1] / self._options['dpi']*5/1.5,
                             forward=True)
 
         axes = fig.add_subplot(1, 1, 1)
@@ -49,7 +49,7 @@ class LinePlotter(BaseLinePlotter):
                 # plot data
                 axes.plot(line.xValues, line.yValues, style, label = line.title)
             except ValueError as e:
-                raise self.exception('Missmatching vector: x: {0}, y: {1}'.format(line.xValues.shape,
+                raise self._exception('Missmatching vector: x: {0}, y: {1}'.format(line.xValues.shape,
                                                                                   line.yValues.shape)) from e
 
             #TODO set configs
@@ -67,18 +67,18 @@ class LinePlotter(BaseLinePlotter):
             plt.ylabel(self.yLabel)
 
         # set legend location
-        axes.legend(loc = self.options['legendPos'])
+        axes.legend(loc = self._options['legendPos'])
 
         # set axis scale
-        axes.set_xscale(self.options['xScale'])
-        axes.set_yscale(self.options['yScale'])
+        axes.set_xscale(self._options['xScale'])
+        axes.set_yscale(self._options['yScale'])
 
-        if self.options['grid'] != None:
-            axes.grid(True, self.options['grid'])
+        if self._options['grid'] != None:
+            axes.grid(True, self._options['grid'])
 
         # set title
-        if self.options['title']:
+        if self._options['title']:
             plt.title(title)
 
         # save figure
-        fig.savefig(path + filename, format = self.options['format'])
+        fig.savefig(path + filename, format = self._options['format'])

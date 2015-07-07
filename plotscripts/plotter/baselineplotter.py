@@ -25,6 +25,7 @@ class Line(BaseObject):
 
     @unique
     class Color(Enum):
+        auto     = 0
         red      = 1
         blue     = 2
         green    = 3
@@ -63,12 +64,12 @@ class Line(BaseObject):
 
         self.xValues = None
 
-    def checkInput(self):
+    def _checkInput(self):
         if self.lineWidth < 0:
-            self.warning("Line width smaller 0, set to 0")
+            self._warning("Line width smaller 0, set to 0")
             self.lineWidth = 0
         if self.markerSize < 0:
-            self.warning("Marker size smaller 0, set to 0")
+            self._warning("Marker size smaller 0, set to 0")
             self.markerSize = 0
         if self.xValues is not None:
             self.xValues = numpy.array(self.xValues)
@@ -78,18 +79,28 @@ class Line(BaseObject):
 class BaseLinePlotter(BasePlotter):
     """ Base class for all line plotters
 
+    :var xValues:
+
     """
     def __init__(self):
         super().__init__()
 
         self.xValues = None
 
-        self.defaults['legendPos']    = 'upper right'                         # legend position
-        self.defaults['grid']         = 'major'
+        self._defaults['legendPos']    = 'upper right'                         # legend position
+        self._defaults['grid']         = 'major'
 
-    def Line(self):
-        """Returns a line object with default settings"""
-        return Line()
+        # internal
+        self._lines = []
+
+    def addLine(self):
+        """Returns a line object with default settings
+
+        :return reference to new line object
+        """
+        newLine = Line()
+        self._lines.append(newLine)
+        return newLine
 
     def plot(self):
         """ Plot function, create all the lines from the data.
@@ -100,23 +111,23 @@ class BaseLinePlotter(BasePlotter):
         :return: None
         """
         # test for input
-        self.out('Plotting {0}'.format(self.title))
-        self.checkInput()
-        self.activateDefaults()
+        self._out('Plotting {0}'.format(self.title))
+        self._checkInput()
+        self._activateDefaults()
 
         for method in self.method :
             # create path
-            path = self.options['plotdir'] + self.cleanPath('/{0}/{1}/'.format(self.title, method))
+            path = self._options['plotdir'] + self._cleanPath('/{0}/{1}/'.format(self.title, method))
 
             # create dir for output
             try :
                 os.makedirs(path, exist_ok=True)
             except OSError as e:
-                raise self.exception('Could not create directory ' + path ) from e
+                raise self._exception('Could not create directory ' + path ) from e
 
             for column in self.columns :
                 # create filename
-                filename = self.cleanFileName('{0}_{1}_{2}'.format(self.title, method, column)) + '.' + self.options['format']
+                filename = self._cleanFileName('{0}_{1}_{2}'.format(self.title, method, column)) + '.' + self._options['format']
 
                 # create title
                 if column:
@@ -127,7 +138,7 @@ class BaseLinePlotter(BasePlotter):
                 # get all data
                 for idx, line in enumerate(self.input) :
                     # check line input
-                    line.checkInput()
+                    line._checkInput()
                     datakey = line.data
 
                     # get data values and add to line
@@ -155,7 +166,7 @@ class BaseLinePlotter(BasePlotter):
                         else:
                             line.xValues = self.data.getXValues(datakey, column)
                             if line.xValues == None:
-                                raise self.exception('No default x values found')
+                                raise self._exception('No default x values found')
                         line.yValues = self.data.getData(datakey, method, self.basedata, line.xValues)
 
                         # set legend to default, if not provided
@@ -175,10 +186,10 @@ class BaseLinePlotter(BasePlotter):
         :param method: current method
         :return: None
         """
-        raise self.exception('Not implemented yet')
+        raise self._exception('Not implemented yet')
 
-    def checkInput(self):
-        super().checkInput()
+    def _checkInput(self):
+        super()._checkInput()
 
-        if self.xValues != None :
+        if self.xValues is not None :
             self.xValues = numpy.array(self.xValues)

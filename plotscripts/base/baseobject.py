@@ -11,6 +11,7 @@ from plotscripts.base.exception import PlotscriptException
 
 import inspect
 
+
 class BaseObject(object):
     """
     Base object class for all used objects
@@ -20,53 +21,118 @@ class BaseObject(object):
     :var defaults: dict with default values for options
     :var debugging: option, turns on debbuging for all objects
     """
+    class Option:
+        """ Container class for an option
+
+        :var name:
+        :var value:
+        :var description:
+        :var visibility: private, down, up, global
+        """
+        def __init__(self, name, value, description = '', visibility = 'private'):
+            """ Contructor
+            :param name:
+            :param value:
+            :param description:
+            :param visibility:
+            :return:
+            """
+            self.name = name
+            self.value = value
+            self.description = description
+            self.visibility = visibility
 
     debugging = False
     Exception = PlotscriptException
 
     def __init__(self):
-        """
-        Constructor
-        """
-        self.options     = {}       # dict for user set options
-        self.defaults    = {}       # dict for default options
+        """ Constructor """
+        self._options     = {}       # dict for user set options
+        self._defaults    = {}       # dict for default options
 
-        self.defaults['debug'] = False
-        self.defaults['pathrepl']    = {'.':'', ' ':'_', '//':'/', '-':'_'}
+        self._addDefault('debug', False, 'Turn on debug mode')
+        self._addDefault('pathrepl', {'.':'', ' ':'_', '//':'/', '-':'_'},
+                         'Characters replaces in file names and paths')
 
-    def setOptions(self, options):
+    def setOption(self, name, value, visibility = None, description = None):
+        """ set option in the object
+        :param name: name of the option
+        :param value:
+        :param visibility:
+        :param description:
+        :return:
+        """
+        if name in self._defaults:
+            if visibility is None:
+                visibility = self._defaults[name].visibility
+            if description is None:
+                description = self._defaults[name].description
+        self._options = self.Option(name, value, description, visibility)
+
+    def _getOption(self, name):
+        """ Retrieve the value of an options
+
+        :param name: name of option
+        :return: value of option
+        """
+        if name not in self._options:
+            raise self._exception('{0} is not an available option')
+        return self._options[name]
+
+    def copyOptions(self, options): #TODO visiblity
         """
         Setting options in object without overwriting existing ones
         :param options: options to set in this object
         """
         for option in options :
-            if not option in self.options :
-                self.options[option] = options[option]
+            if not option in self._options :
+                self._options[option] = options[option]
 
-    #TODO have to think about that
-    def getOptions(self, pObject):
+    def getOptions(self, pObject):      #TODO have to think about that, visibility
         """
         getting options from an object without overwriting
-        @param get options from an object, must be a subclass of BaseObject
+        :param pObject: get options from an object, must be a subclass of BaseObject
         """
         if not issubclass(pObject.__class__, BaseObject):
-            raise self.exception('{0} is not a valid module'.format(pObject.__class__.__name__))
+            raise self._exception('{0} is not a valid module'.format(pObject.__class__.__name__))
 
-        for option in pObject.options :
-            if not option in self.options :
-                self.options[option] = pObject.options[option]
+        for option in pObject.options:
+            if option not in self._options:
+                self._options[option] = pObject.options[option]
 
-    def activateDefaults(self):
+    def _addDefault(self, name, value, description = '', visibility = 'private'):
+        """ add default option to class
+
+        :param name: name of the option
+        :param value: default value of the option
+        :param description: short description
+        :return: None
         """
-        set missing options to defaults
-        """
+        self._defaults[name] = self.Option(name, value, description, visibility)
+
+    def _activateDefaults(self):
+        """ set missing options to defaults """
         # setting remaining defaults
-        for option in self.defaults:
-            if not option in self.options:
-                self.options[option] = self.defaults[option]
+        for option in self._defaults:
+            if option not in self._options:
+                self._options[option] = self._defaults[option]
 
+    def printOptions(self):
+        """ print all available options
+        :return: None
+        """
+        self._out('Available options')
+        for name, option in sorted(self._defaults.items()):
+            self._out('{0} - {1}, default {2}, {3}'.format(option.name, option.description,
+                                                           option.value, option.visibility))
 
-    def exception(self, msg):
+    def _checkInput(self):
+        """ Check the provided input
+        :return: None
+        """
+        pass
+
+    def _exception(self, msg):
         """
         Creates and return an exception
         @param msg: message text for exception
@@ -79,7 +145,7 @@ class BaseObject(object):
         # create exception
         return PlotscriptException(module, function, msg)
 
-    def out(self, msg):
+    def _out(self, msg):
         """
         Prints a message
         :param msg: message text
@@ -89,18 +155,18 @@ class BaseObject(object):
         tmpStr  = '{0}: {1}'.format(module, msg)
         print(tmpStr)
 
-    def debug(self, msg):
+    def _debug(self, msg):
         """
         Prints a debbuging message, only if option debug is set
         :param msg: message text
         """
-        if self.debugging or self.options['debug']:
+        if self.debugging or self._getOption('debug'):
             # get class name
             module  = self.__class__.__name__
             tmpStr  = '{0}: {1}'.format(module, msg)
             print(tmpStr)
 
-    def error(self, msg):
+    def _error(self, msg):
         """
         prints an error msg
         :param msg: error text
@@ -111,7 +177,7 @@ class BaseObject(object):
         print('\n' + '!' * 30 + '   ERROR   ' + '!' * 30)
         print(tmpStr)
 
-    def warning(self, msg):
+    def _warning(self, msg):
         """ Prints a warning
         :param msg: warning text
         :return: None
@@ -121,26 +187,26 @@ class BaseObject(object):
         tmpStr  = '{0}: Warning: {1}'.format(module, msg)
         print(tmpStr)
 
-    def cleanPath(self, path):
+    def _cleanPath(self, path):
         """ Clean a path from special characters
         :param path: file path
         :return: cleaned file path
         """
         path = path.lower()
         # clean path
-        for search in self.options['pathrepl'] :
-            path = path.replace(str(search), str(self.options['pathrepl'][search]))
+        for search in self._getOption('pathrepl'):
+            path = path.replace(str(search), str(self._getOption('pathrepl')[search]))
 
         return path
 
-    def cleanFileName(self, filename):
+    def _cleanFileName(self, filename):
         """ Clean a filename from special characters
         :param filename: file name to clean
         :return: cleaned file name
         """
         filename = filename.lower()
         # clean path
-        for search in self.options['pathrepl'] :
-            filename = filename.replace(str(search), str(self.options['pathrepl'][search]))
+        for search in self._options['pathrepl']:
+            filename = filename.replace(str(search), str(self._getOption('pathrepl')[search]))
 
         return filename

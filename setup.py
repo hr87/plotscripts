@@ -11,5 +11,6 @@ setup(
     license='',
     author='Hans R Hammer',
     author_email='hans.hammer@tamu.edu',
-    description='Package for advance cross section and geometry plotting', requires=['numpy', 'matplotlib']
+    description='Package for advance cross section and geometry plotting',
+    requires=['numpy', 'matplotlib']
 )

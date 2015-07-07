@@ -12,117 +12,147 @@ from plotscripts.data.basedata import BaseData
 from plotscripts.plotter.baseplotter import BasePlotter
 from plotscripts.table.basetablewriter import BaseTableWriter
 
+
 class InputArgs(BaseObject):
     """ class for the input, can handle multiple plots at once
     provides options and run() method
-
-    :var data: Executioner for data processing, must be a subclass of BaseValue
-    :var plot: dict of plots, keyword is plot title if not otherwise given
-    :var table: dict of tables to create
     """
 
     def __init__(self):
-        """
-        Constructor
-        """
-
+        """ Constructor """
         super().__init__()
-        self.data = None      # data executioner
-        self.plot = {}        # dict for defining plots
-        self.table = {}       # dict for defining tables
+        # internal
+        self._data = None        # data executioner
+        self._plots = {}                # dict for defining plots
+        self._tables = {}               # dict for defining tables
 
-    def run(self) :
-        """
-        method to run input, calls executioner and plotters
-        """
+    def setData(self, dataClass):
+        """ set the data executioner
 
-        self.activateDefaults()
+        :param dataClass: class of data executioner
+        :return: reference to executioner
+        """
+        if not issubclass(dataClass, BaseData):
+            self._error(dataClass.__name__ + 'is not a valid data set')
+        newData = dataClass()
+        self._data = newData
+        return newData
+
+    def addPlot(self, name, plotterClass):
+        """ add a plot to the input
+
+        :param name: name of the plot
+        :param plotterClass: class of the plotter
+        :return: reference to new plot
+        """
+        if not issubclass(plotterClass, BasePlotter):
+            self._error(plotterClass.__name__ + 'is not a valid plotter')
+        newPlot = plotterClass()
+        self._plots[name] = newPlot
+        return newPlot
+
+    def addTable(self, name, tableWriterClass):
+        """ add a table to the input
+
+        :param name: name of table
+        :param tableWriterClass: class of table writer
+        :return: reference to new table
+        """
+        if not issubclass(tableWriterClass, BaseTableWriter):
+            self._error(tableWriterClass.__name__ + 'is not a valid table writer')
+        newTable = tableWriterClass()
+        self._tables[name] = newTable
+        return newTable
+
+    def run(self):
+        """ Main method to run input, calls executioner and plotters """
+        self._activateDefaults()
 
         # test for data
-        if self.data is None :
-            self.error('No data executioner found.')
+        if self._data is None:
+            self._error('No data executioner found.')
             return 1
 
-        executioner = str(self.data.__class__.__name__)
+        dataName = str(self._data.__class__.__name__)
 
-        if not issubclass(self.data.__class__, BaseData) :
-            self.error(executioner +  'is not a compatible data executioner')
+        if not issubclass(self._data.__class__, BaseData):
+            self._error(dataName + 'is not a compatible data object')
             return 1
 
         # setting options
-        self.data.setOptions(self.options)
+        self._data.setOptions(self._options)
 
         # process data
-        try :
-            self.data.processData()
-            self.getOptions(self.data)
-        except PlotscriptException as e :
-            self.error(e)
-            self.out('Could not process data with executioner ' + executioner)
-            if self.options['debug']:
+        try:
+            self._data.processData()
+            self.getOptions(self._data)
+        except PlotscriptException as e:
+            self._error(e)
+            self._out('Could not process data with executioner ' + dataName)
+            if self._options['debug']:
                 raise e
             return 1
 
         # check for plots
-        if self.plot == {} and self.table == {} :
-            self.error('No plots or tables found')
+        if self._plots == {} and self._tables == {}:
+            self._error('No plots or tables found')
             return 1
 
         # loop over all plots, need to create list to delete used entries
-        for plotTitle in list(self.plot.keys()) :
+        for plotTitle in list(self._plots.keys()):
             # get plotter name
-            plotterName = str(self.plot[plotTitle].__class__.__name__)
+            plotterName = str(self._plots[plotTitle].__class__.__name__)
             # test for valid plotter
-            if not issubclass(self.plot[plotTitle].__class__, BasePlotter) :
-                self.error(plotterName + ' is not a valid plotter in plot ' + str(plotTitle) )
+            if not issubclass(self._plots[plotTitle].__class__, BasePlotter):
+                self._error(plotterName + ' is not a valid plotter in plot ' + str(plotTitle))
                 return 1
 
-            try :
+            try:
                 # set plot title
-                self.plot[plotTitle].setTitle(plotTitle)
+                self._plots[plotTitle].setTitle(plotTitle)
                 # provide data
-                self.plot[plotTitle].data = self.data
+                self._plots[plotTitle].data = self._data
                 # set option
-                self.plot[plotTitle].setOptions(self.options)
+                self._plots[plotTitle].copyOptions(self._options)
                 # plot
-                self.plot[plotTitle].plot()
+                self._plots[plotTitle].plot()
 
                 # clean up
-                del self.plot[plotTitle]
+                del self._plots[plotTitle]
 
-            except PlotscriptException as e :
-                self.error(e)
-                self.out('Could not plot  ' + str(plotTitle) )
-                if self.options['debug']:
+            except PlotscriptException as e:
+                self._error(e)
+                self._out('Could not plot  ' + str(plotTitle))
+                if self._options['debug']:
                     raise
                 return 1
 
         # write tables
-        for tableTitle in list(self.table.keys()):
-            tableWriterName = str(self.table[tableTitle].__class__.__name__)
+        for tableTitle in list(self._tables.keys()):
+            tableWriterName = str(self._tables[tableTitle].__class__.__name__)
             # test for base class
-            if not issubclass(self.table[tableTitle].__class__, BaseTableWriter):
-                self.error('{0} is not a valid table writter in table {2}'.format(tableWriterName, tableTitle))
+            if not issubclass(self._tables[tableTitle].__class__, BaseTableWriter):
+                self._error('{0} is not a valid table writer in table {2}'.format(tableWriterName, tableTitle))
 
             try:
                 # set plot title
-                self.table[tableTitle].setTitle(tableTitle)
+                self._tables[tableTitle].setTitle(tableTitle)
                 # provide data
-                self.table[tableTitle].data = self.data
+                self._tables[tableTitle].data = self._data
                 # set option
-                self.table[tableTitle].setOptions(self.options)
+                self._tables[tableTitle].copyOptions(self._options)
                 # write table
-                self.table[tableTitle].createTable()
+                self._tables[tableTitle].createTable()
 
                 # clean up
-                del self.table[tableTitle]
+                del self._tables[tableTitle]
 
             except PlotscriptException as e:
-                self.error(e)
-                self.out('Could not create table  ' + str(tableTitle) )
-                if self.options['debug']:
+                self._error(e)
+                self._out('Could not create table  ' + str(tableTitle))
+                if self._options['debug']:
                     raise
                 return 1
 
-        self.out('Finished')
+        self._out('Finished')
         return 0

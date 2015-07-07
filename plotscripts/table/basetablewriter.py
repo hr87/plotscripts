@@ -27,11 +27,11 @@ class BaseTableWriter(BaseObject):
 
         self.data       = None  # storage for data
 
-        self.defaults['rowHeadings']     = True   # headings for each row
-        self.defaults['columnHeadings']  = True   # headings for each column
-        self.defaults['transpose']       = True   # transpose 1d table
-        self.defaults['tabledir']        = './'
-        self.defaults['separator']       = '\t'
+        self._defaults['rowHeadings']     = True   # headings for each row
+        self._defaults['columnHeadings']  = True   # headings for each column
+        self._defaults['transpose']       = True   # transpose 1d table
+        self._defaults['tabledir']        = './'
+        self._defaults['separator']       = '\t'
 
     def createTable(self):
         """
@@ -39,9 +39,9 @@ class BaseTableWriter(BaseObject):
         """
 
         # init stuff
-        self.out('Creating table {0}'.format(self.title))
-        self.checkInput()
-        self.activateDefaults()
+        self._out('Creating table {0}'.format(self.title))
+        self._checkInput()
+        self._activateDefaults()
 
         if self.ndim == 0:
             tableData = self.create0dTable()
@@ -49,14 +49,14 @@ class BaseTableWriter(BaseObject):
             tableData = self.create1dTable()
 
         # create path and filename
-        path = self.options['tabledir']
-        filename = self.cleanFileName('{0}'.format(self.title)) + '.tab'
+        path = self._options['tabledir']
+        filename = self._cleanFileName('{0}'.format(self.title)) + '.tab'
 
         # create dir for output
         try :
             os.makedirs(path, exist_ok=True)
         except OSError as e:
-            raise self.exception('Could not create directory ' + path ) from e
+            raise self._exception('Could not create directory ' + path ) from e
 
         # write table
         self.writeTable(path, filename, tableData)
@@ -66,11 +66,11 @@ class BaseTableWriter(BaseObject):
         tableData = []
 
         # column headings
-        if self.options['columnHeadings']:
+        if self._options['columnHeadings']:
             # create list
             row = []
             # empty field if row headings
-            if self.options['rowHeadings']:
+            if self._options['rowHeadings']:
                 row.append('Row')
 
             # create headings
@@ -85,7 +85,7 @@ class BaseTableWriter(BaseObject):
             row = []
 
             # set first column to headings
-            if self.options['rowHeadings']:
+            if self._options['rowHeadings']:
                 # either from provided list or the executioner one
                 if self.headings:
                     row.append(self.headings[idxData])
@@ -114,7 +114,7 @@ class BaseTableWriter(BaseObject):
 
                     # test for right dimension
                 if row[-1].ndim != 0:
-                    raise self.exception('Data does not fit into table')
+                    raise self._exception('Data does not fit into table')
 
             # append the row to list
             tableData.append(row)
@@ -155,14 +155,14 @@ class BaseTableWriter(BaseObject):
 
                     # test for right dimension
                 if result.ndim != 1:
-                    raise self.exception('Data does not fit into table')
+                    raise self._exception('Data does not fit into table')
 
                 row.extend(result.tolist())
 
                 tableData.append(row)
 
                 # transpose            
-        if self.options['transpose']:
+        if self._options['transpose']:
             tableData =  numpy.array(tableData).T.tolist()
 
         tableData = [headings] + tableData
@@ -175,9 +175,9 @@ class BaseTableWriter(BaseObject):
         else :
             self.title = str(self.title)
 
-    def checkInput(self):
+    def _checkInput(self):
         if self.input == [] :
-            raise self.exception('No input data specified')
+            raise self._exception('No input data specified')
 
         # make a copy
         self.columns = list(self.columns)
@@ -195,7 +195,7 @@ class BaseTableWriter(BaseObject):
                 self.columns[idx] = [column, 'value']
 
         if not self.ndim in [0, 1, 2]:
-            raise self.exception('Not supported dimension')
+            raise self._exception('Not supported dimension')
 
     def writeTable(self, path, filename, tableData):
         """
@@ -205,6 +205,6 @@ class BaseTableWriter(BaseObject):
             for row in tableData:
                 tmpStr = ''
                 for column in row:
-                    tmpStr += '{0}\t'.format(column, self.options['separator'])
+                    tmpStr += '{0}\t'.format(column, self._options['separator'])
 
                 tableFile.write(tmpStr + '\n')

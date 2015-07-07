@@ -26,16 +26,16 @@ class BaseMapPlotter(BasePlotter):
       self.assign    = []           # select the blocks
       self.transpose = False        # transpose data array
       
-      self.defaults['extrema']      = []        # manual set for extrema, [x_min, x_max, y_min, y_max]      
-      self.defaults['mapFontSize']  = 6
-      self.defaults['colormap']     = 'hsv'     # type of color map, hsv only one at this time
-      self.defaults['sameLvls']     = False     # flag to put the same levels on every plot
-      self.defaults['numLvls']      = 20        # number of color steps in color map
-      self.defaults['zeroFix']      = False     # True, fixes nearest value to zero, middle fixes middle to zero
-      self.defaults['overlay']      = True      # overlay lines
-      self.defaults['overlayText']  = True      # text value overlay
-      self.defaults['nanRegions']   = False     # cut outer NaN regions
-      self.defaults['sameExtrema']  = False     # x and y the same
+      self._defaults['extrema']      = []        # manual set for extrema, [x_min, x_max, y_min, y_max]
+      self._defaults['mapFontSize']  = 6
+      self._defaults['colormap']     = 'hsv'     # type of color map, hsv only one at this time
+      self._defaults['sameLvls']     = False     # flag to put the same levels on every plot
+      self._defaults['numLvls']      = 20        # number of color steps in color map
+      self._defaults['zeroFix']      = False     # True, fixes nearest value to zero, middle fixes middle to zero
+      self._defaults['overlay']      = True      # overlay lines
+      self._defaults['overlayText']  = True      # text value overlay
+      self._defaults['nanRegions']   = False     # cut outer NaN regions
+      self._defaults['sameExtrema']  = False     # x and y the same
 
 
    def plot(self):
@@ -43,18 +43,18 @@ class BaseMapPlotter(BasePlotter):
       function getting data from executioner and calls write file
       '''
       # test for input
-      self.checkInput()
+      self._checkInput()
       
-      self.out('Plotting {0}'.format(self.title))
+      self._out('Plotting {0}'.format(self.title))
       
       # setting options in geometry
-      self.geometry.setOptions(self.options)
+      self.geometry.setOptions(self._options)
       # setup geometry
       self.geometry.setupGeometry()
       # getting defaults from geometry
       self.getOptions(self.geometry)
       # and the defaults
-      self.activateDefaults()
+      self._activateDefaults()
       
       for method in self.method:       
          for column in self.columns:
@@ -65,7 +65,7 @@ class BaseMapPlotter(BasePlotter):
                # check for x values
                if datakey.__class__.__name__ == 'tuple' :
                   # useless poke
-                  raise self.exception('No x values allowed in map plot')
+                  raise self._exception('No x values allowed in map plot')
                
                # create copy
                datakey = list(datakey)
@@ -89,7 +89,7 @@ class BaseMapPlotter(BasePlotter):
             except ValueError as e:
                for value in values:
                   print(value.shape)
-               raise self.exception('Results have not the same shape, array not rectangular') from e
+               raise self._exception('Results have not the same shape, array not rectangular') from e
             
             # add third axis
             if values.ndim < 3:
@@ -97,18 +97,18 @@ class BaseMapPlotter(BasePlotter):
                
             # check for dims
             if values.ndim > 3:
-               raise self.exception('To many dimensions in value array: {0}'.format(values.ndim))
+               raise self._exception('To many dimensions in value array: {0}'.format(values.ndim))
             
             # select data to plot from 2d values
             if not self.select == []:
                try:
                   values = values[:, :, self.select]
                except IndexError as e:
-                  raise self.exception('Non valid selection of data') from e
+                  raise self._exception('Non valid selection of data') from e
                
             # calculate levels for all values at once
-            if(self.options['sameLvls']):
-               lvls = self.data.getSteps(values, self.options['numLvls'], method, self.options['zeroFix'])
+            if(self._options['sameLvls']):
+               lvls = self.data.getSteps(values, self._options['numLvls'], method, self._options['zeroFix'])
                
             for idxData, datakey in enumerate(self.input): # check column 
                # use legend strings for name if possible
@@ -118,41 +118,41 @@ class BaseMapPlotter(BasePlotter):
                   tmpName = datakey[0]
                   
                if column != None:
-                  path = self.options['plotdir'] + self.cleanPath('/{0}/{1}/{2}/{3}'.format(self.title, method, tmpName, column))                
+                  path = self._options['plotdir'] + self._cleanPath('/{0}/{1}/{2}/{3}'.format(self.title, method, tmpName, column))
                else:
-                  path = self.options['plotdir'] + self.cleanPath('/{0}/{1}/{2}'.format(self.title, method, tmpName)) 
+                  path = self._options['plotdir'] + self._cleanPath('/{0}/{1}/{2}'.format(self.title, method, tmpName))
                # create dir for output
                try :
                   os.makedirs(path, exist_ok=True)
                except OSError as e:
-                  raise self.exception('Could not create directory ' + path ) from e
+                  raise self._exception('Could not create directory ' + path ) from e
                
                for idxSelect in range(values.shape[2]):
                   # get levels for each single values
-                  if not self.options['sameLvls']:
-                     lvls = self.data.getSteps(values[idxData, :, idxSelect], self.options['numLvls'], method, self.options['zeroFix'])
+                  if not self._options['sameLvls']:
+                     lvls = self.data.getSteps(values[idxData, :, idxSelect], self._options['numLvls'], method, self._options['zeroFix'])
                    
                   # create filename dependent on number of values
                   if values.shape[2] > 1:
                      title = self.title + ' {0}'.format(idxSelect)
-                     filename = self.cleanFileName('{0}_{1}_{2}_{3}_{4}'.format(self.title, tmpName, method, column, idxSelect))
+                     filename = self._cleanFileName('{0}_{1}_{2}_{3}_{4}'.format(self.title, tmpName, method, column, idxSelect))
                   else:
                      title = self.title
-                     filename = self.cleanFileName('{0}_{1}_{2}_{3}'.format(self.title, tmpName, method, column))
+                     filename = self._cleanFileName('{0}_{1}_{2}_{3}'.format(self.title, tmpName, method, column))
                   
                   self.writeFile(path, filename, values[idxData, :, idxSelect], lvls, title)
    
    def writeFile(self, path, filename, values, lvls, title = None):
-      raise self.exception('Not implemented yet')
+      raise self._exception('Not implemented yet')
    
-   def checkInput(self):
-      BasePlotter.checkInput(self)
+   def _checkInput(self):
+      BasePlotter._checkInput(self)
       
       if self.geometry.__class__ == type:
-         raise self.exception('I need a instance and not a class defenition. Add () to the geometry')
+         raise self._exception('I need a instance and not a class defenition. Add () to the geometry')
       
       if not issubclass(self.geometry.__class__, BaseGeometry):
-         raise self.exception(self.geometry.__class__.__name__ + ' is no compatible geometry')
+         raise self._exception(self.geometry.__class__.__name__ + ' is no compatible geometry')
       
       self.geometry.checkInput()
            

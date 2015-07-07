@@ -68,7 +68,7 @@ class Triangular(Hexagonal):
         return ['path'] * self._hexPoints.shape[0]
 
     def calcTriPoints(self, hexPoints, pitch, shuffle = False):
-        self.out('Calculating points')
+        self._out('Calculating points')
 
         # prepare tri point array
         triPoints = numpy.zeros((6, 2))
@@ -91,9 +91,9 @@ class Triangular(Hexagonal):
 
         return triPoints
 
-    def checkInput(self):
-        super().checkInput()
+    def _checkInput(self):
+        super()._checkInput()
 
         if self.shuffleTris:
             if len(self.shuffleTris) != 6:
-                raise self.exception('Shuffling list not correct')
+                raise self._exception('Shuffling list not correct')

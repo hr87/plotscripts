@@ -34,7 +34,7 @@ class Colormap(BaseObject):
             try:
                 return self.colors[idx, :]
             except IndexError as e:
-                raise self.exception('Linking value {0} to color failed'.format(value)) from e
+                raise self._exception('Linking value {0} to color failed'.format(value)) from e
 
     def getTextColor(self, value):
         if value < self.fontMid:
@@ -53,7 +53,7 @@ class Colormap(BaseObject):
         if self.type == 'hsv':
             self.createHSV(lvl)
         else :
-            raise self.exception('Color map type unknown')
+            raise self._exception('Color map type unknown')
 
     def createHSV(self, lvls):
         self.lvls = lvls

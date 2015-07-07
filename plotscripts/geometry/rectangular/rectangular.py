@@ -17,13 +17,13 @@ class Rectangular(BaseGeometry):
         self.pitch     = None   # pitch, single value or list with [x, y] pitch
         self.numBlocks = None   # number of block, single value or list with [x, y] num
 
-        self.defaults['centered'] = True    # flag if geometry centered to 0,0 or left lower corner
+        self._defaults['centered'] = True    # flag if geometry centered to 0,0 or left lower corner
 
         # internal
         self.centerPoints = None
 
     def setupClassGeometry(self):
-        self.centerPoints = self.calcCenterPoints(self.pitch, self.numBlocks, self.options['centered'])
+        self.centerPoints = self.calcCenterPoints(self.pitch, self.numBlocks, self._options['centered'])
 
     def calcCenterPoints(self, pitch, numBlocks, centered = True):
         centerPoints = numpy.zeros((numBlocks[0] * numBlocks[1], 2))
@@ -100,20 +100,20 @@ class Rectangular(BaseGeometry):
     def getClassOverlayTypes(self):
         return ['path'] * self.centerPoints.shape[0]
 
-    def checkInput(self):
-        super().checkInput()
+    def _checkInput(self):
+        super()._checkInput()
         if self.pitch == None:
-            raise self.exception('No pitch provided')
+            raise self._exception('No pitch provided')
         if self.pitch.__class__ != list:
             self.pitch = [self.pitch, self.pitch]
         else:
             if len(self.pitch) != 2:
-                raise self.error('Pitch must be a list of 2 elements')
+                raise self._error('Pitch must be a list of 2 elements')
 
         if self.numBlocks == None:
-            raise self.exception('Number of blocks missing')
+            raise self._exception('Number of blocks missing')
         if self.numBlocks.__class__ != list:
             self.numBlocks = [self.numBlocks, self.numBlocks]
         else:
             if len(self.numBlocks) != 2:
-                raise self.error('Pitch must be a list of 2 elements')
+                raise self._error('Pitch must be a list of 2 elements')
