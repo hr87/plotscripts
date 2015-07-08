@@ -28,7 +28,7 @@ class ColumnData(BaseData):
         self._addDefault('dir', '.', 'folder to look for files', 'private')
         self._addDefault('headings', None, 'Cannot remember', 'private')
 
-    def processClassData(self):
+    def _processClassData(self):
         """
         read and process all the data,
         overwrites base method

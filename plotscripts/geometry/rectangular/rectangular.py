@@ -102,7 +102,7 @@ class Rectangular(BaseGeometry):
 
     def _checkInput(self):
         super()._checkInput()
-        if self.pitch == None:
+        if self.pitch is None:
             raise self._exception('No pitch provided')
         if self.pitch.__class__ != list:
             self.pitch = [self.pitch, self.pitch]
@@ -110,7 +110,7 @@ class Rectangular(BaseGeometry):
             if len(self.pitch) != 2:
                 raise self._error('Pitch must be a list of 2 elements')
 
-        if self.numBlocks == None:
+        if self.numBlocks is None:
             raise self._exception('Number of blocks missing')
         if self.numBlocks.__class__ != list:
             self.numBlocks = [self.numBlocks, self.numBlocks]

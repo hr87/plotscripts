@@ -28,7 +28,7 @@ class MultiDataSet(BaseData):
         self._dataSets[name] = newData
         return newData
 
-    def processClassData(self):
+    def _processClassData(self):
         for name, dataSet in self._dataSets.items():
             try:
                 dataSet.copyOptions(self._options)

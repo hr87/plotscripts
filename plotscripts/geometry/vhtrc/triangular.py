@@ -35,7 +35,7 @@ class VHTRCTriangular(VHTRCHexagonal, Triangular):
         VHTRCHexagonal.setupClassGeometry(self)
 
         # get tri points
-        self.triPoints = Triangular.calcTriPoints(self, self._hexPoints, self.pitch)
+        self._triPoints = Triangular.calcTriPoints(self, self._hexPoints, self.pitch)
 
         # delete tris on the outside
         # select list
@@ -57,7 +57,7 @@ class VHTRCTriangular(VHTRCHexagonal, Triangular):
                         break
 
         # select tris from all tris
-        self.triPoints = self.triPoints[self.select]
+        self._triPoints = self._triPoints[self.select]
 
     def getClassValuePaths(self):
         paths = Triangular.getClassValuePaths(self)

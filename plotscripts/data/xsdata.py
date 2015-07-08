@@ -57,7 +57,7 @@ class XsData(BaseData):
 
         self.fileTypes = list(self.xsFileTypes.keys())
 
-    def processClassData(self):
+    def _processClassData(self):
         """
         base method for data processing, called by inputArgs
         read xs files

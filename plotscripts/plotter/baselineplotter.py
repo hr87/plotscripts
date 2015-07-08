@@ -10,8 +10,7 @@ from plotscripts.plotter.baseplotter import BasePlotter
 from plotscripts.base.baseobject import BaseObject
 
 class Line(BaseObject):
-    """
-    Class describing a line in a line plot. Holds information about values, color etc
+    """ Class describing a line in a line plot. Holds information about values, color etc
 
     :var color:
     :var lineStyle:
@@ -24,7 +23,7 @@ class Line(BaseObject):
     from enum import Enum, unique
 
     @unique
-    class Color(Enum):
+    class ColorList(Enum):
         auto     = 0
         red      = 1
         blue     = 2
@@ -35,7 +34,7 @@ class Line(BaseObject):
         black    = 7
 
     @unique
-    class LineStyle(Enum):
+    class LineStyleList(Enum):
         none        = 0
         solid       = 1
         dashed      = 2
@@ -43,7 +42,7 @@ class Line(BaseObject):
         dashpoint   = 4
 
     @unique
-    class MarkerStyle(Enum):
+    class MarkerStyleList(Enum):
         none        = 0
         dot         = 1
         square      = 2
@@ -52,9 +51,9 @@ class Line(BaseObject):
 
     def __init__(self):
         super().__init__()
-        self.color     = self.Color.red
-        self.lineStyle = self.LineStyle.solid
-        self.markerStyle = self.MarkerStyle.none
+        self.color = self.ColorList.auto
+        self.lineStyle = self.LineStyleList.solid
+        self.markerStyle = self.MarkerStyleList.none
 
         self.data   = []
         self.title  = ''
@@ -64,7 +63,8 @@ class Line(BaseObject):
 
         self.xValues = None
 
-    def _checkInput(self):
+    def checkInput(self):
+        super()._checkInput()
         if self.lineWidth < 0:
             self._warning("Line width smaller 0, set to 0")
             self.lineWidth = 0
@@ -75,7 +75,6 @@ class Line(BaseObject):
             self.xValues = numpy.array(self.xValues)
 
 
-
 class BaseLinePlotter(BasePlotter):
     """ Base class for all line plotters
 
@@ -84,11 +83,11 @@ class BaseLinePlotter(BasePlotter):
     """
     def __init__(self):
         super().__init__()
-
         self.xValues = None
 
-        self._defaults['legendPos']    = 'upper right'                         # legend position
-        self._defaults['grid']         = 'major'
+        # default options
+        self._addDefault('legendPos', 'upper right', 'legend position', 'private')
+        self._addDefault('grid', 'major', 'background grid', 'private')
 
         # internal
         self._lines = []
@@ -115,19 +114,22 @@ class BaseLinePlotter(BasePlotter):
         self._checkInput()
         self._activateDefaults()
 
-        for method in self.method :
+        for method in self.method:
             # create path
-            path = self._options['plotdir'] + self._cleanPath('/{0}/{1}/'.format(self.title, method))
+            path = self._getOption('plotdir')
+            if self._getOption('use_dirs'):
+                # create path
+                 path += self._cleanPath('/{0}/{1}/'.format(self.title, method))
 
             # create dir for output
-            try :
+            try:
                 os.makedirs(path, exist_ok=True)
             except OSError as e:
                 raise self._exception('Could not create directory ' + path ) from e
 
-            for column in self.columns :
+            for column in self.columns:
                 # create filename
-                filename = self._cleanFileName('{0}_{1}_{2}'.format(self.title, method, column)) + '.' + self._options['format']
+                filename = self._cleanFileName('{0}_{1}_{2}'.format(self.title, method, column)) + '.' + self._getOption('format')
 
                 # create title
                 if column:
@@ -136,44 +138,42 @@ class BaseLinePlotter(BasePlotter):
                     title = self.title
 
                 # get all data
-                for idx, line in enumerate(self.input) :
-                    # check line input
-                    line._checkInput()
+                for idx, line in enumerate(self._lines):
                     datakey = line.data
 
                     # get data values and add to line
-                    if datakey.__class__ == tuple :
+                    if datakey.__class__ == tuple:
                         # create copy
                         datakey = tuple(datakey)
                         # append column if necessary
-                        if column != None:
+                        if column is not None:
                             datakey[1].append(column)
 
-                        line.xValues = self.data.getData(datakey[0], 'value', None)
-                        line.yValues = self.data.getData(datakey[1], method, self.basedata, line.xValues)
+                        line.xValues = self._data.getData(datakey[0], 'value', None)
+                        line.yValues = self._data.getData(datakey[1], method, self.basedata, line.xValues)
 
-                    else :
+                    else:
                         # create copy
                         datakey = list(datakey)
                         # append column
-                        if column != None:
+                        if column is not None:
                             datakey.append(column)
 
-                        if line.xValues != None:
+                        if line.xValues is not None:
                             pass
-                        elif self.xValues != None:
+                        elif self.xValues is not None:
                             line.xValues = self.xValues
                         else:
-                            line.xValues = self.data.getXValues(datakey, column)
-                            if line.xValues == None:
+                            line.xValues = self._data.getXValues(datakey, column)
+                            if line.xValues is None:
                                 raise self._exception('No default x values found')
-                        line.yValues = self.data.getData(datakey, method, self.basedata, line.xValues)
+                        line.yValues = self._data.getData(datakey, method, self.basedata, line.xValues)
 
-                        # set legend to default, if not provided
+                    # set legend to default, if not provided
                     if not line.title:
                         line.title = 'Plot {0}'.format(idx)
 
-                self.writeFile(path, filename, title, self.input, column, method)
+                self.writeFile(path, filename, title, self._lines, column, method)
 
     def writeFile(self, path, filename, title, lines, column, method = 'value'):
         """ Virtual method, must be overwritten by the implementations of the plotter
@@ -186,10 +186,12 @@ class BaseLinePlotter(BasePlotter):
         :param method: current method
         :return: None
         """
-        raise self._exception('Not implemented yet')
+        raise self._exception('Not implemented in base class')
 
     def _checkInput(self):
         super()._checkInput()
-
-        if self.xValues is not None :
+        if self.xValues is not None:
             self.xValues = numpy.array(self.xValues)
+
+        for line in self._lines:
+            line.checkInput()

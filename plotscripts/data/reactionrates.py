@@ -42,13 +42,13 @@ class ReactionRate(XsData):
 
         self.fileTypes += list(self.fluxFileTypes.keys())
 
-    def processClassData(self):
+    def _processClassData(self):
         """
         base method for data processing, called by inputArgs
         reads first all xs files, than all flux maps, maps xs to fluxmaps
         """
         # set up xs
-        super().processClassData()
+        super()._processClassData()
 
         # read files
         # for all input files

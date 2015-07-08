@@ -10,26 +10,21 @@ import math
 from plotscripts.geometry.hexagonal.hexagonal import Hexagonal
 
 class Triangular(Hexagonal):
-    """
-    classdocs
-    """
+    """ Class for a triangle hexagonal core """
 
     def __init__(self):
-        """
-        Constructor
-        """
+        """ Constructor """
         super().__init__()
-        self.triPoints      = None
-
         self.shuffleTris = False          # shuffle tris in different order
-        # self.activateDefaults()
+        # internal
+        self._triPoints = None
 
     def setupClassGeometry(self):
         super().setupClassGeometry()
-        self.triPoints = self.calcTriPoints(self._hexPoints, self.pitch, self.shuffleTris)
+        self._triPoints = self.calcTriPoints(self._hexPoints, self.pitch, self.shuffleTris)
 
     def getClassValuePoints(self):
-        return self.triPoints
+        return self._triPoints
 
     def getClassValuePaths(self):
         # init array
@@ -62,7 +57,7 @@ class Triangular(Hexagonal):
         return Triangular.getClassValuePoints(self)
 
     def getClassPathTypes(self):
-        return ['path'] * self.triPoints.shape[0]
+        return ['path'] * self._triPoints.shape[0]
 
     def getClassOverlayTypes(self):
         return ['path'] * self._hexPoints.shape[0]

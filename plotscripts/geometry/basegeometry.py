@@ -31,6 +31,7 @@ class BaseGeometry(BaseObject):
 
     def setupGeometry(self):
         self._out('Setting up geometry')
+        self._checkInput()
         self._activateDefaults()
         self.setupClassGeometry()
 
@@ -114,10 +115,10 @@ class BaseGeometry(BaseObject):
         pass
 
     def getXLabel(self):
-        return 'x [{0}]'.format(self.dimensions)
+        return 'x [{0}]'.format(self._getOption('dimensions'))
 
     def getYLabel(self):
-        return 'y [{0}]'.format(self.dimensions)
+        return 'y [{0}]'.format(self._getOption('dimensions'))
 
     # prototypes for class methods
     def setupClassGeometry(self):

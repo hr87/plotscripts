@@ -46,7 +46,7 @@ class LinePlotter(BaseLinePlotter):
 
                     for datakey in self.input :
                         # get arrays
-                        values = self.data.getData(datakey, column, method, self.basedata)
+                        values = self._data.getData(datakey, column, method, self.basedata)
                         self.writeData(f_plot, values)
 
                         # write legend

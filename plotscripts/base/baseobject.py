@@ -67,7 +67,10 @@ class BaseObject(object):
                 visibility = self._defaults[name].visibility
             if description is None:
                 description = self._defaults[name].description
-        self._options = self.Option(name, value, description, visibility)
+        else:
+            if visibility is None:
+                visibility = 'down'
+        self._options[name] = self.Option(name, value, description, visibility)
 
     def _getOption(self, name):
         """ Retrieve the value of an options
@@ -77,28 +80,37 @@ class BaseObject(object):
         """
         if name not in self._options:
             raise self._exception('{0} is not an available option')
-        return self._options[name]
+        return self._options[name].value
 
     def copyOptions(self, options): #TODO visiblity
         """
         Setting options in object without overwriting existing ones
         :param options: options to set in this object
         """
-        for option in options :
-            if not option in self._options :
-                self._options[option] = options[option]
+        for key, option in options.items():
+            if key not in self._options.keys() \
+                    and (option.visibility == 'down' or option.visibility == 'global'):
+                self._options[key] = option
 
-    def getOptions(self, pObject):      #TODO have to think about that, visibility
+    def getOptions(self):
         """
         getting options from an object without overwriting
         :param pObject: get options from an object, must be a subclass of BaseObject
         """
+        return self._options
+
+    def _retrieveOptions(self, pObject):
+        """ Retrieves options from a subobject
+        :return: None
+        """
         if not issubclass(pObject.__class__, BaseObject):
             raise self._exception('{0} is not a valid module'.format(pObject.__class__.__name__))
 
-        for option in pObject.options:
-            if option not in self._options:
-                self._options[option] = pObject.options[option]
+        options = pObject.getOptions()
+        for key, option in options.items():
+            if key not in self._options \
+                    and option.visibility == 'up' or option.visibility == 'global':
+                self._options[key] = option
 
     def _addDefault(self, name, value, description = '', visibility = 'private'):
         """ add default option to class
@@ -206,7 +218,7 @@ class BaseObject(object):
         """
         filename = filename.lower()
         # clean path
-        for search in self._options['pathrepl']:
+        for search in self._getOption('pathrepl'):
             filename = filename.replace(str(search), str(self._getOption('pathrepl')[search]))
 
         return filename

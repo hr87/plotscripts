@@ -13,10 +13,10 @@ from plotscripts.data.basedata import BaseData
 
 
 class TestData(BaseData):
-    def processClassData(self):
+    def _processClassData(self):
         pass
 
-    def getClassData(self, index, method='value', base=None, x=None):
+    def _getClassData(self, index, method='value', base=None, x=None):
         """
         creates dummmy data
         index: [type, num]
@@ -43,7 +43,9 @@ class TestData(BaseData):
             if calc == 'rnd':
                 # get a random number
                 values[idx] = random.random()
-            else:
+            elif calc == 'num':
                 values[idx] = idx
+            else:
+                raise self._exception('Unknown calculation type {0}'.format(calc))
 
         return values

@@ -80,12 +80,12 @@ class InputArgs(BaseObject):
             return 1
 
         # setting options
-        self._data.setOptions(self._options)
+        self._data.copyOptions(self._options)
 
         # process data
         try:
             self._data.processData()
-            self.getOptions(self._data)
+            self._retrieveOptions(self._data)
         except PlotscriptException as e:
             self._error(e)
             self._out('Could not process data with executioner ' + dataName)
@@ -111,7 +111,7 @@ class InputArgs(BaseObject):
                 # set plot title
                 self._plots[plotTitle].setTitle(plotTitle)
                 # provide data
-                self._plots[plotTitle].data = self._data
+                self._plots[plotTitle].setData(self._data)
                 # set option
                 self._plots[plotTitle].copyOptions(self._options)
                 # plot

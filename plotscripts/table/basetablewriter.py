@@ -47,16 +47,18 @@ class BaseTableWriter(BaseObject):
             tableData = self.create0dTable()
         elif self.ndim == 1:
             tableData = self.create1dTable()
+        else:
+            raise self._exception('Number of dimensions to high')
 
         # create path and filename
         path = self._options['tabledir']
         filename = self._cleanFileName('{0}'.format(self.title)) + '.tab'
 
         # create dir for output
-        try :
+        try:
             os.makedirs(path, exist_ok=True)
         except OSError as e:
-            raise self._exception('Could not create directory ' + path ) from e
+            raise self._exception('Could not create directory ' + path) from e
 
         # write table
         self.writeTable(path, filename, tableData)
@@ -93,11 +95,11 @@ class BaseTableWriter(BaseObject):
                     row.append(self.data.getLegend(datakey, None))
 
             for column in self.columns:
-                if datakey.__class__ == tuple :
+                if datakey.__class__ == tuple:
                     # create copy
                     tmpDatakey = list(datakey[1])
                     # append column if necessary
-                    if column[0] != None:
+                    if column[0] is not None:
                         tmpDatakey.append(column[0])
 
                     xvalues = (self.data.getData(datakey[0], 'value', None))
@@ -106,7 +108,7 @@ class BaseTableWriter(BaseObject):
                     # create copy
                     tmpDatakey = list(datakey)
                     # append column
-                    if column[0] != None:
+                    if column[0] is not None:
                         tmpDatakey.append(column[0])
 
                     xvalues = (self.data.getXValues(tmpDatakey, 'value'))
@@ -134,20 +136,20 @@ class BaseTableWriter(BaseObject):
                 else:
                     headings.append('{0}-{1}'.format(self.data.getLegend(datakey, column), column[1]))
 
-                if datakey.__class__ == tuple :
+                if datakey.__class__ == tuple:
                     # create copy
                     tmpDatakey = list(datakey[1])
                     # append column if necessary
-                    if column[0] != None:
+                    if column[0] is not None:
                         tmpDatakey.append(column[0])
 
                     xvalues = (self.data.getData(datakey[0], 'value', None))
                     result = self.data.getData(tmpDatakey, column[1], self.basedata, xvalues)
-                else :
+                else:
                     # create copy
                     tmpDatakey = list(datakey)
                     # append column
-                    if column[0] != None:
+                    if column[0] is not None:
                         tmpDatakey.append(column[0])
 
                     xvalues = (self.data.getXValues(tmpDatakey, 'value'))
@@ -163,27 +165,27 @@ class BaseTableWriter(BaseObject):
 
                 # transpose            
         if self._options['transpose']:
-            tableData =  numpy.array(tableData).T.tolist()
+            tableData = numpy.array(tableData).T.tolist()
 
         tableData = [headings] + tableData
 
         return tableData
 
     def setTitle(self, title):
-        if self.title == None :
+        if self.title is None:
             self.title = title
         else :
             self.title = str(self.title)
 
     def _checkInput(self):
-        if self.input == [] :
+        if self.input is []:
             raise self._exception('No input data specified')
 
         # make a copy
         self.columns = list(self.columns)
 
         # setting column
-        if self.columns == None or self.columns == []:
+        if self.columns is None or self.columns == []:
             self.columns = [None]
 
         if self.columns.__class__ != list:

@@ -16,14 +16,11 @@ class Hexagonal(BaseGeometry):
     :var ringStart: Start ring, default = 0
     :var ringEnd: End Ring
     :var pitch: Pitch of one hexagon
-    :var dimensions: string with the x and y label, default = 'mm'
     
     """
 
     def __init__(self):
-        """
-        Constructor
-        """
+        """ Constructor """
         super().__init__()
         self.ringStart      = 0         # start ring 0 = center block
         self.ringEnd        = None      # end rings
@@ -74,10 +71,13 @@ class Hexagonal(BaseGeometry):
         return ['path'] * self._hexPoints.shape[0]
 
     def calcHexPoints(self, pitch, ringEnd, ringStart = 0, rotate = False):
+        """ calculating center points of an hexagonal grid
+        :param pitch: block pitch
+        :param ringEnd: number of final ring
+        :param ringStart: number of first ring
+        :param rotate: rotate core for 30 degrees
+        :return: ndarray with center points
         """
-        calculating center points of an hexagonal grid 
-        """
-
         self._debug('Calculating points')
 
         # calc inner and outer radius
@@ -135,8 +135,8 @@ class Hexagonal(BaseGeometry):
     def _checkInput(self):
         BaseGeometry._checkInput(self)
 
-        if self.ringEnd == None:
+        if self.ringEnd is None:
             raise self._exception('No end ring number')
 
-        if self.pitch == None :
+        if self.pitch is None :
             raise self._exception('No pitch')

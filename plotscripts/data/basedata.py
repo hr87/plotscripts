@@ -49,18 +49,17 @@ class BaseData(BaseObject):
         """ Constructor """
         super().__init__()
         self.xSteps     = []             # list for xValues TODO think about that
-
         self.xLabel     = ''             # TODO that too
         self.yLabel     = ''
-
-        self._statistics = {}             # index input for statistics views
         self.columns   = []              # columns to prepare statistics for
 
+        # set default options
         self._addDefault('normalize', 'max',
                          'Normalization method: sum, avg, max', 'private')   # normalization,
 
         # internal
         self._data       = {}             # data storage
+        self._statistics = {}             # index input for statistics views
 
     def addStatistic(self, name):
         """ Add a statistic input
@@ -82,18 +81,25 @@ class BaseData(BaseObject):
         self._checkInput()
 
         # call data executioner process method
-        self.processClassData()
+        self._processClassData()
 
         # prepare statistics
-        self.calcSpecialData()
+        self._calcSpecialData()
 
-    def processClassData(self):
+    def _processClassData(self):
         """ Virtual method to be overwritten by the implementation
         :return: None
         """
         raise self._exception('Data processing not implemented in base class')
 
-    def calcSpecialData(self):
+    def _getClassData(self, index):
+        """ Virtual method to retrieve class data
+        :param index: data index
+        :return: data as ndarray
+        """
+        raise self._exception("Data retrieving not implemented in base class")
+
+    def _calcSpecialData(self):
         """
         function to calculate statistics
         """
@@ -133,7 +139,7 @@ class BaseData(BaseObject):
             except self.Exception as e:
                 raise self._exception('Could not calculate statistic {0}'.format(key)) from e
 
-    def getSpecialData(self, index):
+    def _getSpecialData(self, index):
         """
         Method for getting precalculated data like statistics
         :param index: the search index for the data
@@ -201,7 +207,7 @@ class BaseData(BaseObject):
         column = index[-1]
 
         # check and get special data
-        check, values = self.getSpecialData(index)
+        check, values = self._getSpecialData(index)
 
         # we need to get data from the database
         if not check:
@@ -209,12 +215,12 @@ class BaseData(BaseObject):
             if method in ['rel_norm', 'diff_norm']:
                 values = self.getData(index, 'norm', None)
             else:
-                values = self.getClassData(index)
+                values = self._getClassData(index)
 
         if method == 'grad':
             if x is None :
                 raise self._exception('x values needed for gradient')
-            x = self.enchantX(x)
+            x = self._enchantX(x)
 
             # which type of base data
         if method in ['rel_norm', 'diff_norm']:
@@ -233,6 +239,7 @@ class BaseData(BaseObject):
                 baseX = self.getXValues(base, column)
         else:
             baseValues = None
+            baseX = None
 
         if values.dtype == numpy.dtype('object'):
             raise self._exception('Data shape is not rectangular')
@@ -263,11 +270,11 @@ class BaseData(BaseObject):
                 self._warning('Cannot interpolate')
 
         # calculate difference and deviations
-        values = self.calc(x, values, method, baseValues)
+        values = self._calc(x, values, method, baseValues)
 
         return values
 
-    def calc(self, x, y, method, base_values):
+    def _calc(self, x, y, method, base_values):
         # decide what to do
         if method == 'value':     # normal value
             pass
@@ -293,7 +300,7 @@ class BaseData(BaseObject):
 
         return y.squeeze()
 
-    def enchantX(self, x):
+    def _enchantX(self, x):
         x1 = x.copy()
         # little bit magic to assign new values to x
         # not working at the moment correctly, if x is int array
@@ -307,9 +314,9 @@ class BaseData(BaseObject):
         """
         base funciton to get value levels for map plots
         round to next nice level
-        @param values: ndarray of values to calculate steps for
-        @param numSteps: number of Steps
-        @return: array with step values
+        :param values: ndarray of values to calculate steps for
+        :param numSteps: number of Steps
+        :return: array with step values
         """
         valuesMax = numpy.nanmax(values)
         valuesMin = numpy.nanmin(values)

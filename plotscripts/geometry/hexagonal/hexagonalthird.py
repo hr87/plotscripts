@@ -10,13 +10,11 @@ from plotscripts.geometry.hexagonal.hexagonal import Hexagonal
 
 class HexagonalThird(Hexagonal):
     """
-    classdocs
+    Class for a third of a hexagonal core
     """
 
     def __init__(self):
-        """
-        Constructor
-        """
+        """ Constructor """
         super().__init__()
 
     def setupClassGeometry(self):

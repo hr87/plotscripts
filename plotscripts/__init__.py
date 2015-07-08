@@ -1,5 +1,5 @@
 # input class
-from plotscripts.inputargs import InputArgs
+from plotscripts.base.inputargs import InputArgs
 
 
 # create instance of input
