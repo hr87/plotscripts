@@ -363,7 +363,7 @@ class BaseData(BaseObject):
         get standard x values
         @return: numpy array with x values
         """
-        if self.xSteps == None or self.xSteps == []:
+        if self.xSteps is None or self.xSteps == []:
             # self.warning('No x values available')
             return None
 

@@ -51,7 +51,7 @@ class BaseObject(object):
         self._defaults    = {}       # dict for default options
 
         self._addDefault('debug', False, 'Turn on debug mode')
-        self._addDefault('pathrepl', {'.':'', ' ':'_', '//':'/', '-':'_'},
+        self._addDefault('pathrepl', {'.': '', ' ': '_', '//': '/', '-': '_'},
                          'Characters replaces in file names and paths')
 
     def setOption(self, name, value, visibility = None, description = None):
@@ -82,7 +82,7 @@ class BaseObject(object):
             raise self._exception('{0} is not an available option')
         return self._options[name].value
 
-    def copyOptions(self, options): #TODO visiblity
+    def copyOptions(self, options):
         """
         Setting options in object without overwriting existing ones
         :param options: options to set in this object
@@ -112,7 +112,7 @@ class BaseObject(object):
                     and option.visibility == 'up' or option.visibility == 'global':
                 self._options[key] = option
 
-    def _addDefault(self, name, value, description = '', visibility = 'private'):
+    def _addDefault(self, name, value, description='', visibility='private'):
         """ add default option to class
 
         :param name: name of the option
@@ -163,8 +163,8 @@ class BaseObject(object):
         :param msg: message text
         """
         # get class name
-        module  = self.__class__.__name__
-        tmpStr  = '{0}: {1}'.format(module, msg)
+        module = self.__class__.__name__
+        tmpStr = '{0}: {1}'.format(module, msg)
         print(tmpStr)
 
     def _debug(self, msg):
@@ -174,8 +174,8 @@ class BaseObject(object):
         """
         if self.debugging or self._getOption('debug'):
             # get class name
-            module  = self.__class__.__name__
-            tmpStr  = '{0}: {1}'.format(module, msg)
+            module = self.__class__.__name__
+            tmpStr = '{0}: {1}'.format(module, msg)
             print(tmpStr)
 
     def _error(self, msg):
@@ -184,8 +184,8 @@ class BaseObject(object):
         :param msg: error text
         """
         # get class name
-        module  = self.__class__.__name__
-        tmpStr  = '{0}: Error: {1}'.format(module, msg)
+        module = self.__class__.__name__
+        tmpStr = '{0}: Error: {1}'.format(module, msg)
         print('\n' + '!' * 30 + '   ERROR   ' + '!' * 30)
         print(tmpStr)
 

@@ -21,32 +21,32 @@ class MapPlotter(BaseMap):
         Constructor
         """
         super().__init__()
-        self._defaults['lineWidth']       = 0.5       # width of frame lines
-        self._defaults['stroke']          = None      # stroke color for data fields
-        self._defaults['strokeWidth']     = 1         # strocke width
-        self._defaults['overlayWidth']    = 1         # overlay stroke width
+        self._addDefault('lineWidth', 0.5, 'width of frame lines', 'private')
+        self._addDefault('stroke', None, 'stroke color for data fields', 'private')
+        self._addDefault('strokeWidth', 1, 'strocke width', 'private')
+        self._addDefault('overlayWidth', 1, 'overlay stroke width', 'private')
 
         # setting for text overlay
-        self._defaults['text_lim_low'] = 0.01      # lower limit for value format strings
-        self._defaults['text_lim_mid'] = 1         # middle limit for value format strings
-        self._defaults['text_lim_up']  = 1000      # upper limit for value format strings
+        self._addDefault('text_lim_low', 0.01, 'lower limit for value format strings', 'private')
+        self._addDefault('text_lim_mid', 1, 'middle limit for value format strings', 'private')
+        self._addDefault('text_lim_up', 1000, 'upper limit for value format strings', 'private')
 
-        self._defaults['text_for_low'] = '{0:.2e}' # lower value format string
-        self._defaults['text_for_mlow']= '{0:.1f}' # lower middle value format string
-        self._defaults['text_for_mup'] = '{0:.2f}' # upper middle value format string
-        self._defaults['text_for_up']  = '{0:.2e}' # upper value format string
+        self._addDefault('text_for_low', '{0:.2e}', 'lower value format string', 'private')
+        self._addDefault('text_for_mlow', '{0:.1f}', 'lower middle value format string', 'private')
+        self._addDefault('text_for_mup', '{0:.2f}', 'upper middle value format string', 'private')
+        self._addDefault('text_for_up', '{0:.2e}', 'upper value format string', 'private')
 
         # setting for axis and legend
-        self._defaults['leg_lim_low'] = 0.01       # lower limit for value format strings
-        self._defaults['leg_lim_mid'] = 1          # middle limit for value format strings
-        self._defaults['leg_lim_up']  = 1e4        # upper limit for value format strings
+        self._addDefault('leg_lim_low', 0.01, 'lower limit for value format strings', 'private')
+        self._addDefault('leg_lim_mid', 1, 'middle limit for value format strings', 'private')
+        self._addDefault('leg_lim_up', 1e4, 'upper limit for value format strings', 'private')
 
-        self._defaults['leg_for_low'] = '{0:.2e}'  # lower value format string
-        self._defaults['leg_for_mlow']= '{0:g}'    # lower middle value format string
-        self._defaults['leg_for_mup'] = '{0:g}'    # upper middle value format string
-        self._defaults['leg_for_up']  = '{0:.2e}'  # upper value format string
+        self._addDefault('leg_for_low', '{0:.2e}', 'lower value format string', 'private')
+        self._addDefault('leg_for_mlow', '{0:g}', 'lower middle value format string', 'private')
+        self._addDefault('leg_for_mup', '{0:g}', 'upper middle value format string', 'private')
+        self._addDefault('leg_for_up', '{0:.2e}', 'upper value format string', 'private')
 
-    def writeFile(self, path, filename, values, lvls, title = None):
+    def writeFile(self, path, filename, values, lvls, assign, title=None):
         self._out('Writing file {0}'.format(filename))
         # setting up some vars
         pos_title       = [0.5, 0.03]
@@ -71,11 +71,11 @@ class MapPlotter(BaseMap):
         overlayTypes   = self._geometry.getOverlayTypes()
 
         # select assignment
-        if self.assign != []:
+        if assign != []:
             try:
-                valuePaths  = valuePaths[self.assign, :, :]
-                textPoints  = textPoints[self.assign, :]
-                pathTypes   = [pathTypes[idx] for idx in self.assign]
+                valuePaths  = valuePaths[assign, :, :]
+                textPoints  = textPoints[assign, :]
+                pathTypes   = [pathTypes[idx] for idx in assign]
             except IndexError as e:
                 raise self._exception('Wrong assignment to blocks') from e
 

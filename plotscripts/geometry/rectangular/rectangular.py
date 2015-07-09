@@ -13,11 +13,11 @@ class Rectangular(BaseGeometry):
 
     def __init__(self):
         super().__init__()
-
         self.pitch     = None   # pitch, single value or list with [x, y] pitch
         self.numBlocks = None   # number of block, single value or list with [x, y] num
 
-        self._defaults['centered'] = True    # flag if geometry centered to 0,0 or left lower corner
+        # add options
+        self._addDefault('centered', True, 'flag if geometry centered to 0,0 or left lower corner', 'private')
 
         # internal
         self.centerPoints = None

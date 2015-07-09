@@ -9,6 +9,7 @@ import plotscripts.plotter.matplotlib
 
 outputPath = 'tests/plotter/'
 
+
 class _MatplotlibLineTest(unittest.TestCase):
     def setUp(self):
         """ test init function """
@@ -22,8 +23,9 @@ class _MatplotlibLineTest(unittest.TestCase):
         inputArgs = plotscripts.InputArgs()
         inputArgs.setData(plotscripts.data.TestData)
         plot = inputArgs.addPlot('matplotlib_1', plotscripts.plotter.matplotlib.LinePlotter)
-        plot.setOption('use_dirs', False)
-        plot.setOption('plotdir', outputPath)
+        plot.setOption('use_dirs', False)               # do not generate folder structure
+        plot.setOption('plotdir', outputPath)           # set folder to test folder
+        plot.setOption('format', 'png')                 # output format to png, svg gives problems with comparison
         line = plot.addLine()                           # add a line
         line.data = (['num', 10], ['num', 10])          # setting x and y values
         line.color = line.ColorList.red                 # set line color
@@ -31,9 +33,9 @@ class _MatplotlibLineTest(unittest.TestCase):
         line.markerStyle = line.MarkerStyleList.dot     # set marker style
         line.markerSize = 1.1                           # set marker size
         inputArgs.run()                                 # execute
-        # self.assertTrue(filecmp.cmp(outputPath + 'matplotlib_1_value_none.svg',
-        #                             outputPath + 'gold/matplotlib_1_value_none.svg', False),
-        #                 'Output files are not equal')
+        self.assertTrue(filecmp.cmp(outputPath + 'matplotlib_1_value_none.png',
+                                    outputPath + 'gold/matplotlib_1_value_none.png', False),
+                        'Output files are not equal')
 
 
 def testSuit():
