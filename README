@@ -18,30 +18,31 @@ USAGE
 	numpy
 	matplotlib
 
-[structure]
-The central call is the InputArgs class. This class handle all executioners and plotters. The method run() executes the input. Before the call of run(), InputArgs needs one data executioner and the definitions of the plots. To use the plotScripts, an object of this class needs to be created:
+[simple start]
+The central call is the InputArgs class. This class handle all datasets and plotters. The method run() executes the input. Before the call of run(), InputArgs needs one dataset and the definitions of the plots. To use the plotScripts, an object of this class needs to be created:
 		inputArgs = plotsScripts.InputArgs() 
-The executioner has to be assigned to the data field of the InputArgs object. All executioners must be derived from the BaseData class. Only one executioner can be active.
-		inputArgs.data = package.Executioner() 
+The dataset has to be assigned to the InputArgs object. All datasets must be derived from the BaseData class. Only one dataset can be active.
+		data = inputArgs.setData(package.DataSet)
 The plotter must be derived from the BasePlotter class. More than one plot can be used at one time with different names:
-		inputArgs.plot['name'] = plotter.subpackage.Plotter()
+		plot = inputArgs.addPlot('name', plotter.subpackage.Plotter)
 Tables can create in a similar way, all table writers must be derived from BaseTableWriter. This is the only one available at the moment.
-		InputArgs.table['name'] = table.subpackage.TableWriter()
+		table = InputArgs.addTable('name', table.subpackage.TableWriter)
 
-Every object needs a method checkInput. This method has to be called in the class' processing method. The task of this method is to check the input. The  first thing to do in this method is to call the parent's checkInput method.
 
 [options]
-Options can be set either in the InputArgs object and will than be applied to all subobjects or they can be applied to single objects like a plotter or the data executioner. The syntax for options is :
-		object.options['obtionName'] = value
-Each class has defaults for all necessary options that will be activated, if no option is set. Also the default values will passed to later used objects, for example from the executioner to the plotters, so that the executioner can influence option like the axis scale. Every subobjects get the options the the higher object.
-
+Options can be set either in the InputArgs object and will than be applied to all subobjects or they can be applied to single objects like a plotter or the dataset. The syntax for options is :
+		object.setOption('obtionName', value, visibility, description)
+Each class has defaults for all necessary options that will be activated, if no option is set. Also the default values will passed to later used objects depending on the visibility, for example from the dataset to the plotters, so that the dataset can influence option like the axis scale. Every subobjects get the options the the higher object.
+    private: no propagation
+    down: only submodules see options
+    global: get propagate up, modules executed later will see options, careful
 General options for all classes:
 	debug: turns on debugging output
 	pathrepl: dict with characters replaced in filenames; default = {'.':'', ' ':'_', '//':'/', '-':'_'}
 	
 
-[executioner]
-The executioner read and prepare the data. Most executioner will probably read the data from a file, but it is also possible to use a database or other sources. Central methods of a executioner are process() and getData(). process() prepare all the data like reading from file. GetData() is used by the plotters to retrieve data from the executioner. It will ask the special implementation via the method getClassData() for the data. It will pass an index describing the data. The obtained data from the subclass is than treated with the specified method. Methods available at the moment: 
+[DataSets]
+The dataset read and prepare the data. Most dataset will probably read the data from a file, but it is also possible to use a database or other sources. Central methods of a dataset are process() and getData(). process() prepare all the data like reading from file. GetData() is used by the plotters to retrieve data from the dataset. It will ask the special implementation via the method getClassData() for the data. It will pass an index describing the data. The obtained data from the subclass is than treated with the specified method. Methods available at the moment: 
 	'value': for the actual value, 
 	'diff': for a difference to a base data set, 
 	'rel': for relative deviation to a base data set and 
@@ -53,27 +54,33 @@ The executioner read and prepare the data. Most executioner will probably read t
 For some methods, base values are needed, that must be provided. 
 	object.basedata = [ind, ex]
 
-The index is passed as list and the structure is free to choose by the executioner. A tuple with two lists get x and y data from the executioner. If no x data is specified, the default x data from the plotter or from the executioner is taken, in this sequence. The last field is normally set by the plotter using the column field and refers to some sort of different columns available. 
-	object.input = [ [index, 1], ([x, index], [y, index]) ]
+The index is passed as list and the structure is free to choose by the dataset. A tuple with two lists get x and y data from the dataset. If no x data is specified, the default x data from the plotter or from the dataset is taken, in this sequence. The last field is normally set by the plotter using the column field and refers to some sort of different columns available. 
+	[index, 1] y data
+	([x, index], [y, index]) xy data
+	[index, 1, column] specify column in data index
 
-The base executioner, and hence all derived classes, can prepare statistics depending on indices provided. This statistics include the average and the standard deviation. The columns field in the data executioner can be used for preparing column depending statistics, the weight field gives weights for the average calculation. Both field can be given for all or for each singe statistic. 
-	InputArgs.data.statistics['name'] = [[index, 1], [index, 2]]
+The base dataset, and hence all derived classes, can prepare statistics depending on indices provided. This statistics include the average and the standard deviation. The columns field in the dataset can be used for preparing column depending statistics, the weight field gives weights for the average calculation. Both field can be given for all or for each singe statistic. 
+	statistic = data.addStatistics('name')
+	statistic.input = [[index, 1], [index, 2]]
 
-This is a list of all available executioners at the moment:
-	BaseData: Base class for all executioners; not runable
+    available fields:
+        input: input list
+        weights: a list of weights for statistics, can be omitted and is then assumed 1/N
+
+
+This is a list of all available datasets at the moment:
+	BaseData: Base class for all datasets; not runable
 		index: N/A
 		Fields:
 			xSteps: default x values
 			xLabel: default x label
 			yLabel: default y label
-			statistics: dict for statistics input lists
 			columns: a list with all columns used for statistics, can be overwritten for all or each single statistic, default may be set in the subclass for all columns
-			weights: a list of weights for statistics, same name than the statistic, can be omitted and is then assumed 1/N
 		options:
 			normalize: 'sum', 'avg', 'max'; normalize method for norm, rel_norm and diff_norm 
 			
 	
-	TestData: Simple executioner giving test data, either increasing or random; don't use column with this executioner
+	TestData: Simple dataset giving test data, either increasing or random; don't use column with this dataset
 		index: type, num
 			type: 'rnd', 'idx': either random or ascending data points
 			num: number of data points
@@ -122,14 +129,14 @@ The plotter writes the actual plot files. At the moment line and map plotters ar
 List of plotter:
 	BasePlotter: Base class providing the interface; not runable
 		fields:
-			input: a list of indices, which shell be plotted; the index depends on the data executioner; a tuple provides (x,y) data, a list only y-values:
+			input: a list of indices, which shell be plotted; the index depends on the dataset; a tuple provides (x,y) data, a list only y-values:
 				plotter.input = [([index, X], [index, Y]), [index, y]]
 			method: a list with all method to plot
 			column: A list of columns to plot, can be omitted, than the last entry of the index is taken as column.
 			Basedata: index for base data for difference and relative deviation.
 			Title: the title of the plot, if not the name of the plot is taken.
-			xLabel: x label, if omitted, executioner's x Label is used
-			yLabel: y label, if omitted, executioner's y Label is used
+			xLabel: x label, if omitted, dataset's x Label is used
+			yLabel: y label, if omitted, dataset's y Label is used
 			legend: list of legend strings, can be omitted but, or must have the same length as input
 		options:
 			plotdir: output dir, default '.'
@@ -141,7 +148,7 @@ List of plotter:
 
 	BaseLinePlotter: Base class for all line plotter, creates the plot data and than passes to the special function writing.
 		Fields: inherited from BasePlotter
-			xValues: standard x values for the plot, if None then default from the data executioner will be taken, default = None
+			xValues: standard x values for the plot, if None then default from the dataset will be taken, default = None
 		options:
 			style: line colors and styles; default ['r', 'b', 'g', 'y', 'm', 'c', 'k']
 			legendPos: legend position; default 'upper right'
@@ -212,3 +219,4 @@ In the package table are writer for table formats. The only available class at t
 			tabledir: output dir for the table, default = './'
 			separator: separator between columns, default = '\t'
 
+Every object needs a method checkInput. This method has to be called in the class' processing method. The task of this method is to check the input. The  first thing to do in this method is to call the parent's checkInput method.

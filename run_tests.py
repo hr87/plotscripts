@@ -2,11 +2,11 @@
 
 import unittest
 
-# import test suits
-import tests.plotter
+import tests
 
+print('Running plotscripts test suite:')
 testSuite = unittest.TestSuite()
-testSuite.addTest(tests.plotter.plotterSuite)
+testSuite.addTest(tests.testSuite())
 
 # run tests
 unittest.main(defaultTest='testSuite', buffer=True)

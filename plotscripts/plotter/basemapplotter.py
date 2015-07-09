@@ -26,7 +26,7 @@ class BaseMapPlotter(BasePlotter):
         def __init__(self):
             """ Constructor """
             super().__init__()
-            self.input = []                 # data index
+            self.data = []                  # data index
             self.legend = None              # description
             self.select    = []             # select the values in 2d
             self.assign    = []             # select the blocks
@@ -99,7 +99,7 @@ class BaseMapPlotter(BasePlotter):
                 values = []
 
                 for map in self._maps:
-                    datakey = map.input
+                    datakey = map.data
                     # check for x values
                     if datakey.__class__.__name__ == 'tuple':
                         # useless poke
@@ -149,7 +149,7 @@ class BaseMapPlotter(BasePlotter):
                     lvls = self._data.getSteps(values, self._getOption('numLvls'), method, self._getOption('zeroFix'))
 
                 for idxData, map in enumerate(self._maps):   # check column
-                    datakey = map.input
+                    datakey = map.data
                     # use legend strings for name if possible
                     if map.legend:
                         tmpName = map.legend

@@ -41,8 +41,13 @@ class TestData(BaseData):
         # fill it
         for idx in range(num):
             if calc == 'rnd':
-                # get a random number
-                values[idx] = random.random()
+                if len(index) == 2:
+                    # get a random number
+                    values[idx] = random.random()
+                elif len(index) == 3:
+                    values[idx] = random.uniform(0, index[2])
+                else:
+                    values[idx] = random.uniform(index[2], index[3])
             elif calc == 'num':
                 values[idx] = idx
             else:

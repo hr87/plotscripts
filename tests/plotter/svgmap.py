@@ -3,7 +3,6 @@
 import unittest
 import filecmp
 
-import plotscripts.base.exception
 import plotscripts.data
 import plotscripts.plotter.svg
 import plotscripts.geometry.rectangular
@@ -29,15 +28,15 @@ class _SvgMapTest(unittest.TestCase):
         geometry = plot.setGeometry(plotscripts.geometry.rectangular.Rectangular)
         geometry.pitch = 10
         geometry.numBlocks = [5, 5]
-        map = plot.addMap('test')
-        map.input = ['num', 25]
+        mapPlot = plot.addMap('test')
+        mapPlot.data = ['num', 25]
         inputArgs.run()                                 # execute
         self.assertTrue(filecmp.cmp(outputPath + 'svgmap_1_num_value_none.svg',
                                      outputPath + 'gold/svgmap_1_num_value_none.svg', False),
                          'Output files are not equal')
 
 
-def testSuit():
+def testSuite():
     suite = unittest.TestSuite()
     suite.addTest(_SvgMapTest('test_plotter'))
     return suite
