@@ -13,7 +13,11 @@ geometry = plot.setGeometry(geometry.Rectangular)   # add gemoetry information
 geometry.pitch = 10                     # set width of blocks
 geometry.numBlocks = [5, 5]             # set up number of blocks
 
+index = plotscripts.data.TestData.index()
+index.calcType = 'num'
+index.num = 25
+
 mapPlot = plot.addMap('test')           # add a map
-mapPlot.data = ['num', 25]             # set map data
+mapPlot.setData(index)                  # set map data
 
 inputArgs.run()                         # execute

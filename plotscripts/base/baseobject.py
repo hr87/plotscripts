@@ -79,7 +79,7 @@ class BaseObject(object):
         :return: value of option
         """
         if name not in self._options:
-            raise self._exception('{0} is not an available option')
+            raise self._exception('{0} is not an available option'.format(name))
         return self._options[name].value
 
     def copyOptions(self, options):

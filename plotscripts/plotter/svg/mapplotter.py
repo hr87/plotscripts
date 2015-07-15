@@ -361,14 +361,14 @@ class MapPlotter(BaseMap):
             raise self._exception('Unknown overlay type')
 
         # write design attributes
-        if strokeColor == None:
+        if strokeColor is None:
             tmpStr += ' stroke="none"'
         else:
             tmpStr += ' stroke="rgb({0}, {1}, {2})"'.format(int(strokeColor[0]), int(strokeColor[1]), int(strokeColor[2]))
 
         tmpStr += ' stroke-width = "{0}"'.format( width)
 
-        if color == None:
+        if color is None:
             tmpStr += ' fill="none"'
         else:
             tmpStr += ' fill="rgb({0}, {1}, {2})"'.format(int(color[0]), int(color[1]), int(color[2]))

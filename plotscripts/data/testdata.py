@@ -7,50 +7,62 @@ A class providing dummy test data, either increasing or random
 """
 
 import numpy
-import random
+import numpy.random
 
 from plotscripts.data.basedata import BaseData
 
 
 class TestData(BaseData):
+    def __init__(self):
+        super().__init__()
+
+    class TestIndex(BaseData.Index):
+        """ Index class for TestData
+        :var calcType: calculation type, 'num' or 'rnd'
+        :var num: number of elements
+        :var min: minimal value
+        :var max: maximal value, 'rnd' only
+        :var step: step size for num only
+        """
+        def __init__(self):
+            """ Constructor """
+            super().__init__()
+            self.calcType = None
+            self.num = None
+            self.min = 0
+            self.max = 1
+            self.step = 1
+
+    @staticmethod
+    def index():
+        """ Create a test data index
+        :return: index object
+        """
+        return TestData.TestIndex()
+
     def _processClassData(self):
         pass
 
     def _getClassData(self, index, method='value', base=None, x=None):
         """
-        creates dummmy data
+        creates dummy data
         index: [type, num]
 
         type: rnd - random data, idx - increasing data
         num: number of data points
         """
 
-        if len(index) < 2:
-            raise self._exception('WTF, there are only two values necessary and you screwed it up')
-
         # get index
-        num   = index[1]
-        calc  = index[0]
-
-        # init random generator
-        random.seed()
-
-        # create value array
-        values = numpy.zeros(num)
-
-        # fill it
-        for idx in range(num):
-            if calc == 'rnd':
-                if len(index) == 2:
-                    # get a random number
-                    values[idx] = random.random()
-                elif len(index) == 3:
-                    values[idx] = random.uniform(0, index[2])
-                else:
-                    values[idx] = random.uniform(index[2], index[3])
-            elif calc == 'num':
-                values[idx] = idx
+        try:
+            # fill it
+            if index.calcType == 'rnd':
+                values = numpy.random.uniform(index.min, index.max, index.num)
+            elif index.calcType == 'num':
+                maxValue = index.min + index.num * index.step
+                values = numpy.arange(index.min, maxValue, index.step)
             else:
-                raise self._exception('Unknown calculation type {0}'.format(calc))
+                raise self._exception('Unknown calculation type {0}'.format(index.calcType))
+        except IndexError:
+            raise self._exception('Invalid index "{0}"'.format(index))
 
         return values

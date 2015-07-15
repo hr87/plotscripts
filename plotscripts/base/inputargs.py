@@ -26,15 +26,17 @@ class InputArgs(BaseObject):
         self._plots = {}                # dict for defining plots
         self._tables = {}               # dict for defining tables
 
-    def setData(self, dataClass):
+    def setData(self, dataClass, *args, **kwargs):
         """ set the data executioner
 
         :param dataClass: class of data executioner
+        :param args: additional parameters
+        :param kwargs: additional keyword parameters
         :return: reference to executioner
         """
         if not issubclass(dataClass, BaseData):
             self._error(dataClass.__name__ + 'is not a valid data set')
-        newData = dataClass()
+        newData = dataClass(*args, **kwargs)
         self._data = newData
         return newData
 

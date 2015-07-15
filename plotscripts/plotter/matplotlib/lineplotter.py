@@ -49,7 +49,7 @@ class LinePlotter(BaseLinePlotter):
                         Line.MarkerStyleList.star: '*',
                         Line.MarkerStyleList.circle: 'o'}
 
-        plotargs = {'label': line.title,
+        plotargs = {'label': line._name,
                     'linewidth': line.lineWidth,
                     'markersize': line.markerSize,
                     'marker': markerStyles[line.markerStyle],

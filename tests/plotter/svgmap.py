@@ -21,7 +21,7 @@ class _SvgMapTest(unittest.TestCase):
 
     def test_plotter(self):
         inputArgs = plotscripts.InputArgs()
-        inputArgs.setData(plotscripts.data.TestData)
+        data = inputArgs.setData(plotscripts.data.TestData)
         plot = inputArgs.addPlot('svgmap_1', plotscripts.plotter.svg.MapPlotter)
         plot.setOption('use_dirs', False)
         plot.setOption('plotdir', outputPath)
@@ -29,11 +29,14 @@ class _SvgMapTest(unittest.TestCase):
         geometry.pitch = 10
         geometry.numBlocks = [5, 5]
         mapPlot = plot.addMap('test')
-        mapPlot.data = ['num', 25]
-        inputArgs.run()                                 # execute
+        index = data.index()
+        index.calcType = 'num'
+        index.num = 25
+        mapPlot.setData(index)
+        inputArgs.run()  # execute
         self.assertTrue(filecmp.cmp(outputPath + 'svgmap_1_num_value_none.svg',
-                                     outputPath + 'gold/svgmap_1_num_value_none.svg', False),
-                         'Output files are not equal')
+                                    outputPath + 'gold/svgmap_1_num_value_none.svg', False),
+                        'Output files are not equal')
 
 
 def testSuite():

@@ -1,14 +1,12 @@
-'''
-Created on Aug 29, 2013
-
-@author: Hans R Hammer
-
-test file for all geometries
-'''
+""" Example to use all geometries
+"""
 
 # import necessary packages
-import plotscripts.data.testdata
-import plotscripts.plotter.svg.mapplotter
+import plotscripts
+import plotscripts.data as data
+import plotscripts.plotter.svg as plotter
+import plotscripts.geometry.hexagonal as hexagonal
+import plotscripts.geometry.rectangular as rectangular
 import math
 
 print('I am alive')
@@ -17,18 +15,28 @@ print('I am alive')
 inputArg = plotscripts.InputArgs()
 # set a few options, will be passed to sub objects
 # this options are global, options also can be set in the sub objects
-inputArg._options['debug'] = True
-inputArg._options['plotdir'] = 'plot/geometry/'
+inputArg.setOption('debug', True)
+inputArg.setOption('plotdir', 'plot/geometry/')
 
-inputArg._options['text_for_low'] = '{0:.0f}' # lower value format string
-inputArg._options['text_for_mlow']= '{0:.0f}' # lower middle value format string
-inputArg._options['text_for_mup'] = '{0:.0f}' # upper middle value format string
-inputArg._options['text_for_up']  = '{0:.0f}' # upper value format string
+inputArg.setOption('text_for_low', '{0:.0f}') # lower value format string
+inputArg.setOption('text_for_mlow', '{0:.0f}') # lower middle value format string
+inputArg.setOption('text_for_mup', '{0:.0f}') # upper middle value format string
+inputArg.setOption('text_for_up', '{0:.0f}') # upper value format string
 
 # create test data executioner
-inputArg._data = plotscripts.data.testdata.TestData()
+dataset = inputArg.setData(data.TestData)
 
 # plot all available geometries
+plot = inputArg.addPlot('rectangular', plotter.MapPlotter)
+geometry = plot.setGeometry(rectangular.Rectangular)
+geometry.pitch = 10
+geometry.numBlocks = [5, 5]
+
+index = dataset.index()
+index.calcType = 'num'
+index.num = 25
+
+
 import plotscripts.geometry.rectangular.rectangular
 inputArg._plots['rectangular']                    = plotscripts.plotter.svg.mapplotter.MapPlotter()
 inputArg._plots['rectangular'].geometry           = plotscripts.geometry.rectangular.rectangular.Rectangular()

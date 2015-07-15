@@ -6,8 +6,11 @@ Created on Jun 27, 2013
 
 import os
 import numpy
+import copy
+
 from plotscripts.plotter.baseplotter import BasePlotter
 from plotscripts.base.baseobject import BaseObject
+from plotscripts.data.basedata import BaseData
 
 class Line(BaseObject):
     """ Class describing a line in a line plot. Holds information about values, color etc
@@ -49,19 +52,18 @@ class Line(BaseObject):
         star        = 3
         circle      = 4
 
-    def __init__(self):
+    def __init__(self, name):
         super().__init__()
         self.color = self.ColorList.auto
         self.lineStyle = self.LineStyleList.solid
         self.markerStyle = self.MarkerStyleList.none
-
-        self.data   = []
-        self.title  = ''
-
         self.lineWidth = 1
         self.markerSize = 1
-
         self.xValues = None
+
+        # internal
+        self._data = None
+        self._name = name
 
     def checkInput(self):
         super()._checkInput()
@@ -73,6 +75,15 @@ class Line(BaseObject):
             self.markerSize = 0
         if self.xValues is not None:
             self.xValues = numpy.array(self.xValues)
+
+    def setData(self, index):
+        """ set data index
+        :param index: data index object
+        :return: None
+        """
+        if not (isinstance(index, BaseData.Index) or isinstance(index, tuple)):
+            raise self._exception('Invalid index object')
+        self._data = copy.deepcopy(index)
 
 
 class BaseLinePlotter(BasePlotter):
@@ -92,12 +103,12 @@ class BaseLinePlotter(BasePlotter):
         # internal
         self._lines = []
 
-    def addLine(self):
+    def addLine(self, name):
         """Returns a line object with default settings
 
         :return reference to new line object
         """
-        newLine = Line()
+        newLine = Line(name)
         self._lines.append(newLine)
         return newLine
 
@@ -139,7 +150,7 @@ class BaseLinePlotter(BasePlotter):
 
                 # get all data
                 for idx, line in enumerate(self._lines):
-                    datakey = line.data
+                    datakey = line._data
 
                     # get data values and add to line
                     if datakey.__class__ == tuple:
@@ -147,30 +158,28 @@ class BaseLinePlotter(BasePlotter):
                         datakey = tuple(datakey)
                         # append column if necessary
                         if column is not None:
-                            datakey[1].append(column)
+                            datakey[1].column = column
 
                         line.xValues = self._data.getData(datakey[0], 'value', None)
                         line.yValues = self._data.getData(datakey[1], method, self.basedata, line.xValues)
 
                     else:
-                        # create copy
-                        datakey = list(datakey)
                         # append column
                         if column is not None:
-                            datakey.append(column)
+                            datakey.column = column
 
                         if line.xValues is not None:
                             pass
                         elif self.xValues is not None:
                             line.xValues = self.xValues
                         else:
-                            line.xValues = self._data.getXValues(datakey, column)
+                            line.xValues = self._data.getXValues(datakey)
                             if line.xValues is None:
                                 raise self._exception('No default x values found')
                         line.yValues = self._data.getData(datakey, method, self.basedata, line.xValues)
 
                     # set legend to default, if not provided
-                    if not line.title:
+                    if not line._name:
                         line.title = 'Plot {0}'.format(idx)
 
                 self.writeFile(path, filename, title, self._lines, column, method)

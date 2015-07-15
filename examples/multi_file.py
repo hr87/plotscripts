@@ -5,9 +5,8 @@ Created on Mar 7, 2014
 '''
 
 import plotscripts
-import plotscripts.data.testdata as testdata
-import plotscripts.data.multidataset as multifile
-import plotscripts.plotter.matplotlib.lineplotter as plotter
+import plotscripts.data as data
+import plotscripts.plotter.matplotlib as plotter
 
 print('I am alive')
 
@@ -15,14 +14,15 @@ print('I am alive')
 inputArg = plotscripts.InputArgs()
 # set a few options, will be passed to sub objects
 # this options are global, options also can be set in the sub objects
-inputArg._options['debug'] = True
-inputArg._options['plotdir'] = 'plot/data/'
+inputArg.setOption('debug', True)
+inputArg.setOption('plotdir', 'plot/data/')
 
-inputArg._data = multifile.MultiDataSet()
-inputArg._data.files['test1'] = testdata.TestData()
-inputArg._data.files['test2'] = testdata.TestData()
+mulitFile = inputArg.setData(data.MultiDataSet)
+inputArg._data.files['test1'] = data.TestData()
+inputArg._data.files['test2'] = data.TestData()
 
-inputArg._plots['test'] = plotter.LinePlotter()
+inputArg.addPlot('test', plotter.LinePlotter())
+# TODO use index
 inputArg._plots['test'].input    = [['test1', 'rnd', 10], ['test2', 'rnd', 10]]
 inputArg._plots['test'].xValues  = list(range(10))
 inputArg._plots['test'].column   = ['column']

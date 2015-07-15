@@ -7,9 +7,11 @@ Created on Apr 22, 2013
 from plotscripts.base.baseobject import BaseObject
 from plotscripts.plotter.baseplotter import BasePlotter
 from plotscripts.geometry.basegeometry import BaseGeometry
+from plotscripts.data.basedata import BaseData
 
 import os
 import numpy
+import copy
 
 
 class BaseMapPlotter(BasePlotter):
@@ -23,18 +25,28 @@ class BaseMapPlotter(BasePlotter):
         :var assign: select only partial or shuffled blocks
         """
 
-        def __init__(self):
+        def __init__(self, name):
             """ Constructor """
             super().__init__()
-            self.data = []                  # data index
-            self.legend = None              # description
             self.select    = []             # select the values in 2d
             self.assign    = []             # select the blocks
             self.transpose = False          # transpose data array
 
+            # internal
+            self._data = None               # data index
+            self._name = name               # description
+
         def _checkInput(self):
             super()._checkInput()
-            #TODO check input here
+            # TODO check input here
+
+        def setData(self, index):
+            """ sets the data for the map
+            :return: None
+            """
+            if not (isinstance(index, BaseData.Index) or isinstance(index, tuple)):
+                raise self._exception('Invalid index object')
+            self._data = copy.deepcopy(index)
 
     def __init__(self):
         """ Constructor """
@@ -73,7 +85,7 @@ class BaseMapPlotter(BasePlotter):
         :param name: name of map plot
         :return: reference to map plot
         """
-        newMap = self.Map()
+        newMap = self.Map(name)
         self._maps.append(newMap)
         return newMap
 
@@ -91,7 +103,7 @@ class BaseMapPlotter(BasePlotter):
         # setup geometry
         self._geometry.setupGeometry()
         # getting defaults from geometry
-        #TODO self._retrieveOptions(self._geometry.getOptions)
+        # TODO self._retrieveOptions(self._geometry.getOptions)
 
         for method in self.method:
             for column in self.columns:
@@ -99,18 +111,15 @@ class BaseMapPlotter(BasePlotter):
                 values = []
 
                 for map in self._maps:
-                    datakey = map.data
+                    datakey = map._data
                     # check for x values
                     if datakey.__class__.__name__ == 'tuple':
                         # useless poke
                         raise self._exception('No x values allowed in map plot')
 
-                    # create copy
-                    datakey = list(datakey)
-
                     # check column 
                     if column is not None:
-                        datakey.append(column)
+                        datakey.column = column
 
                     # get values
                     tmp = self._data.getData(datakey, method, self.basedata, None)
@@ -149,12 +158,12 @@ class BaseMapPlotter(BasePlotter):
                     lvls = self._data.getSteps(values, self._getOption('numLvls'), method, self._getOption('zeroFix'))
 
                 for idxData, map in enumerate(self._maps):   # check column
-                    datakey = map.data
+                    datakey = map._data
                     # use legend strings for name if possible
-                    if map.legend:
-                        tmpName = map.legend
+                    if map._name:
+                        tmpName = map._name
                     else:
-                        tmpName = datakey[0]
+                        tmpName = datakey.column
 
                     path = self._getOption('plotdir')
                     if self._getOption('use_dirs'):
@@ -174,7 +183,7 @@ class BaseMapPlotter(BasePlotter):
                             lvls = self._data.getSteps(values[idxData, :, idxSelect], self._getOption('numLvls'), method, self._getOption('zeroFix'))
 
                         # create filename dependent on number of values
-                        #TODO get map title
+                        # TODO get map title
                         if values.shape[2] > 1:
                             title = self.title + ' {0}'.format(idxSelect)
                             filename = self._cleanFileName('{0}_{1}_{2}_{3}_{4}'.format(self.title, tmpName, method, column, idxSelect))
@@ -191,8 +200,7 @@ class BaseMapPlotter(BasePlotter):
         BasePlotter._checkInput(self)
 
         if self._geometry.__class__ == type:
-            raise self._exception('I need a instance and not a class defenition. Add () to the geometry')
+            raise self._exception('I need a instance and not a class definition. Add () to the geometry')
 
         if not issubclass(self._geometry.__class__, BaseGeometry):
             raise self._exception(self._geometry.__class__.__name__ + ' is no compatible geometry')
-
