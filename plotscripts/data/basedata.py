@@ -73,7 +73,8 @@ class BaseData(BaseObject):
         """
         raise BaseObject.Exception('BaseData', 'index', "Not implemented in base class")
 
-    def statisticIndex(self):
+    @staticmethod
+    def statisticIndex():
         """ Create and return a statistic index
         :return: an object of StatisticIndex
         """
@@ -172,7 +173,7 @@ class BaseData(BaseObject):
                 baseX = self.getData(baseIndex[1])
             else:
                 baseValues = self.getData(baseIndex, baseMeth)
-                baseX = self.getXValues(baseIndex, index.column)
+                baseX = self.getXValues(baseIndex)
         else:
             baseValues = None
             baseX = None

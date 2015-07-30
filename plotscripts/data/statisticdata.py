@@ -2,6 +2,7 @@
 """
 
 import numpy
+import copy
 from plotscripts.data.basedata import BaseData
 
 
@@ -44,7 +45,9 @@ class StatisticData(BaseData):
         :param index: index object
         :return:
         """
-        self._input.append(index)
+        if not isinstance(index, self.Index):
+            raise self._exception('Invalid index object "{0}"'.format(index))
+        self._input.append(copy.deepcopy(index))
         self._weights.append(weight)
 
     def _processClassData(self):

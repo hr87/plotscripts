@@ -12,6 +12,7 @@ from plotscripts.plotter.baseplotter import BasePlotter
 from plotscripts.base.baseobject import BaseObject
 from plotscripts.data.basedata import BaseData
 
+
 class Line(BaseObject):
     """ Class describing a line in a line plot. Holds information about values, color etc
 
@@ -76,7 +77,7 @@ class Line(BaseObject):
         if self.xValues is not None:
             self.xValues = numpy.array(self.xValues)
 
-    def setData(self, index):
+    def setIndex(self, index):
         """ set data index
         :param index: data index object
         :return: None
@@ -92,8 +93,8 @@ class BaseLinePlotter(BasePlotter):
     :var xValues:
 
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name):
+        super().__init__(name)
         self.xValues = None
 
         # default options
@@ -140,7 +141,7 @@ class BaseLinePlotter(BasePlotter):
 
             for column in self.columns:
                 # create filename
-                filename = self._cleanFileName('{0}_{1}_{2}'.format(self.title, method, column)) + '.' + self._getOption('format')
+                filename = self._cleanFileName('{0}_{1}_{2}'.format(self._name, method, column)) + '.' + self._getOption('format')
 
                 # create title
                 if column:
@@ -161,7 +162,7 @@ class BaseLinePlotter(BasePlotter):
                             datakey[1].column = column
 
                         line.xValues = self._data.getData(datakey[0], 'value', None)
-                        line.yValues = self._data.getData(datakey[1], method, self.basedata, line.xValues)
+                        line.yValues = self._data.getData(datakey[1], method, self._basedata, line.xValues)
 
                     else:
                         # append column
@@ -176,7 +177,7 @@ class BaseLinePlotter(BasePlotter):
                             line.xValues = self._data.getXValues(datakey)
                             if line.xValues is None:
                                 raise self._exception('No default x values found')
-                        line.yValues = self._data.getData(datakey, method, self.basedata, line.xValues)
+                        line.yValues = self._data.getData(datakey, method, self._basedata, line.xValues)
 
                     # set legend to default, if not provided
                     if not line._name:

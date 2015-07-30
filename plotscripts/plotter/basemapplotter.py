@@ -16,6 +16,7 @@ import copy
 
 class BaseMapPlotter(BasePlotter):
     """ Basic for all map plotters """
+
     class Map(BaseObject):
         """ Class to store a map
 
@@ -28,29 +29,29 @@ class BaseMapPlotter(BasePlotter):
         def __init__(self, name):
             """ Constructor """
             super().__init__()
-            self.select    = []             # select the values in 2d
-            self.assign    = []             # select the blocks
-            self.transpose = False          # transpose data array
+            self.select = []  # select the values in 2d
+            self.assign = []  # select the blocks
+            self.transpose = False  # transpose data array
 
             # internal
-            self._data = None               # data index
-            self._name = name               # description
+            self._data = None  # data index
+            self._name = name  # description
 
         def _checkInput(self):
             super()._checkInput()
             # TODO check input here
 
-        def setData(self, index):
+        def setIndex(self, index):
             """ sets the data for the map
             :return: None
             """
             if not (isinstance(index, BaseData.Index) or isinstance(index, tuple)):
-                raise self._exception('Invalid index object')
+                raise self._exception('Invalid index object "{0}"'.format(index))
             self._data = copy.deepcopy(index)
 
-    def __init__(self):
+    def __init__(self, name):
         """ Constructor """
-        super().__init__()
+        super().__init__(name)
 
         # options
         self._addDefault('extrema', [], 'manual set for extrema, [x_min, x_max, y_min, y_max]', 'private')
@@ -65,8 +66,8 @@ class BaseMapPlotter(BasePlotter):
         self._addDefault('sameExtrema', False, 'x and y the same', 'private')
 
         # internal
-        self._geometry = None           # geometry class
-        self._maps = []                 # dict of input maps
+        self._geometry = None  # geometry class
+        self._maps = []  # dict of input maps
 
     def setGeometry(self, geometryClass):
         """ sets the geometry for the map plotter
@@ -110,8 +111,11 @@ class BaseMapPlotter(BasePlotter):
 
                 values = []
 
-                for map in self._maps:
-                    datakey = map._data
+                for mapPlot in self._maps:
+                    if not isinstance(mapPlot, self.Map):
+                        raise self._exception('Invalid map object')
+
+                    datakey = mapPlot._data
                     # check for x values
                     if datakey.__class__.__name__ == 'tuple':
                         # useless poke
@@ -122,10 +126,18 @@ class BaseMapPlotter(BasePlotter):
                         datakey.column = column
 
                     # get values
-                    tmp = self._data.getData(datakey, method, self.basedata, None)
+                    tmp = self._data.getData(datakey, method, self._basedata, None)
+
                     # transpose values if wanted
-                    if map.transpose:
+                    if mapPlot.transpose:
                         tmp = tmp.transpose()
+
+                    # select data to plot from 2d values
+                    if not mapPlot.select == []:
+                        try:
+                            tmp = tmp[:, mapPlot.select]
+                        except IndexError as e:
+                            raise self._exception('Non valid selection of data') from e
 
                     # add values to list
                     values.append(tmp)
@@ -146,31 +158,19 @@ class BaseMapPlotter(BasePlotter):
                 if values.ndim > 3:
                     raise self._exception('To many dimensions in value array: {0}'.format(values.ndim))
 
-                # select data to plot from 2d values
-                if not map.select == []:
-                    try:
-                        values = values[:, :, map.select]
-                    except IndexError as e:
-                        raise self._exception('Non valid selection of data') from e
-
                 # calculate levels for all values at once
                 if self._getOption('sameLvls'):
                     lvls = self._data.getSteps(values, self._getOption('numLvls'), method, self._getOption('zeroFix'))
 
-                for idxData, map in enumerate(self._maps):   # check column
-                    datakey = map._data
-                    # use legend strings for name if possible
-                    if map._name:
-                        tmpName = map._name
-                    else:
-                        tmpName = datakey.column
+                for idxData, mapPlot in enumerate(self._maps):  # check column
 
                     path = self._getOption('plotdir')
                     if self._getOption('use_dirs'):
                         if column is not None:
-                            path += self._cleanPath('/{0}/{1}/{2}/{3}'.format(self.title, method, tmpName, column))
+                            path += self._cleanPath(
+                                '/{0}/{1}/{2}/{3}'.format(self.title, method, mapPlot._name, column))
                         else:
-                            path += self._cleanPath('/{0}/{1}/{2}'.format(self.title, method, tmpName))
+                            path += self._cleanPath('/{0}/{1}/{2}'.format(self.title, method, mapPlot._name))
                     # create dir for output
                     try:
                         os.makedirs(path, exist_ok=True)
@@ -180,18 +180,30 @@ class BaseMapPlotter(BasePlotter):
                     for idxSelect in range(values.shape[2]):
                         # get levels for each single values
                         if not self._getOption('sameLvls'):
-                            lvls = self._data.getSteps(values[idxData, :, idxSelect], self._getOption('numLvls'), method, self._getOption('zeroFix'))
+                            lvls = self._data.getSteps(values[idxData, :, idxSelect], self._getOption('numLvls'),
+                                                       method, self._getOption('zeroFix'))
 
                         # create filename dependent on number of values
-                        # TODO get map title
-                        if values.shape[2] > 1:
-                            title = self.title + ' {0}'.format(idxSelect)
-                            filename = self._cleanFileName('{0}_{1}_{2}_{3}_{4}'.format(self.title, tmpName, method, column, idxSelect))
+                        if column is None:
+                            if values.shape[2] > 1:
+                                title = self.title + ' {0}'.format(idxSelect)
+                                filename = self._cleanFileName('{0}_{1}_{2}_{3}'.format(self.title, mapPlot._name,
+                                                                                        method, idxSelect))
+                            else:
+                                title = self.title
+                                filename = self._cleanFileName('{0}_{1}_{2}'.format(self.title, mapPlot._name,
+                                                                                    method))
                         else:
-                            title = self.title
-                            filename = self._cleanFileName('{0}_{1}_{2}_{3}'.format(self.title, tmpName, method, column))
+                            if values.shape[2] > 1:
+                                title = self.title + '{0} {1}'.format(column, idxSelect)
+                                filename = self._cleanFileName('{0}_{1}_{2}_{3}_{4}'.format(self.title, mapPlot._name,
+                                                                                           method, column, idxSelect))
+                            else:
+                                title = self.title + ' {0}'.format(column)
+                                filename = self._cleanFileName('{0}_{1}_{2}_{3}'.format(self.title, mapPlot._name,
+                                                                                       method, column))
 
-                        self.writeFile(path, filename, values[idxData, :, idxSelect], lvls, map.assign, title)
+                        self.writeFile(path, filename, values[idxData, :, idxSelect], lvls, mapPlot.assign, title)
 
     def writeFile(self, path, filename, values, lvls, assign, title=None):
         raise self._exception('Not implemented in base class')

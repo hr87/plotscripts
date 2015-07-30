@@ -6,8 +6,10 @@ Created on Jul 19, 2013
 
 import numpy
 import os
+import copy
 
 from plotscripts.base.baseobject import BaseObject
+from plotscripts.data.basedata import BaseData
 
 
 class BaseTableWriter(BaseObject):
@@ -15,23 +17,70 @@ class BaseTableWriter(BaseObject):
     Base class for table writers
     """
 
-    def __init__(self):
+    class Row(BaseObject):
+        """ class for one column
+        """
+
+        def __init__(self, name):
+            """ Constructor
+            :param name: column name
+            :return: None
+            """
+            super().__init__()
+
+            # internal
+            self._name = name
+            self._data = None
+
+        def setIndex(self, index):
+            """ set the index
+            """
+            if not (isinstance(index, BaseData.Index) or isinstance(index, tuple)):
+                raise self._exception('Invalid index object "{0}"'.format(index))
+            self._data = copy.deepcopy(index)
+
+    def __init__(self, name):
         super().__init__()
 
-        self.input      = []    # plot data
-        self.columns     = []    # columns to catch, list with column and method
-        self.basedata   = None  # base data for comparison
-        self.title      = None  # plot title
-        self.headings   = None
-        self.ndim       = 0
+        self.columns = []  # columns to catch, list with column and method
+        self.title = name  # plot title
+        self.ndim = 0
 
-        self.data       = None  # storage for data
+        # internal
+        self._data = None  # storage for data
+        self._rows = []     # table rows
+        self._basedata = None  # base data for comparison
+        self._name = name
 
-        self._defaults['rowHeadings']     = True   # headings for each row
-        self._defaults['columnHeadings']  = True   # headings for each column
-        self._defaults['transpose']       = True   # transpose 1d table
-        self._defaults['tabledir']        = './'
-        self._defaults['separator']       = '\t'
+        # add options
+        self._addDefault('rowHeadings', True, 'headings for each row', 'local')
+        self._addDefault('columnHeadings', True, 'headings for each column')
+        self._addDefault('transpose', True, 'transpose 1d table', 'local')
+        self._addDefault('tabledir', './', 'folder for tables', 'local')
+        self._addDefault('separator', '\t', 'table separator', 'local')
+
+    def setData(self, data):
+        """ Set data set
+        :param data: data set
+        :return: None
+        """
+        self._data = data
+
+    def setBaseIndex(self, index):
+        """ Set the index for the base data
+        :param index: index object
+        :return: None
+        """
+        if not isinstance(index, BaseData.Index):
+            raise self._exception('Invalid index object "{0}"'.format(index))
+        self._basedata = copy.deepcopy(index)
+
+    def addRow(self, name):
+        """ Add a row to the table
+        """
+        row = self.Row(name)
+        self._rows.append(row)
+        return row
 
     def createTable(self):
         """
@@ -43,6 +92,7 @@ class BaseTableWriter(BaseObject):
         self._checkInput()
         self._activateDefaults()
 
+        # TODO automatically
         if self.ndim == 0:
             tableData = self.create0dTable()
         elif self.ndim == 1:
@@ -51,8 +101,8 @@ class BaseTableWriter(BaseObject):
             raise self._exception('Number of dimensions to high')
 
         # create path and filename
-        path = self._options['tabledir']
-        filename = self._cleanFileName('{0}'.format(self.title)) + '.tab'
+        path = self._getOption('tabledir')
+        filename = self._cleanFileName('{0}'.format(self._name))
 
         # create dir for output
         try:
@@ -68,51 +118,45 @@ class BaseTableWriter(BaseObject):
         tableData = []
 
         # column headings
-        if self._options['columnHeadings']:
+        if self._getOption('columnHeadings'):
             # create list
             row = []
             # empty field if row headings
-            if self._options['rowHeadings']:
+            if self._getOption('rowHeadings'):
                 row.append('Row')
 
             # create headings
             for column in self.columns:
-                row.append(column)
+                row.append('{0[0]}/{0[1]}'.format(column))
 
-        tableData.append(row)
+            tableData.append(row)
 
         # loop over input keys for each row
-        for idxData, datakey in enumerate(self.input):
+        for rowInput in self._rows:
             # create a new row
             row = []
+            datakey = rowInput._data
 
             # set first column to headings
-            if self._options['rowHeadings']:
-                # either from provided list or the executioner one
-                if self.headings:
-                    row.append(self.headings[idxData])
-                else:
-                    row.append(self.data.getLegend(datakey, None))
+            if self._getOption('rowHeadings'):
+                row.append(rowInput._name)
 
             for column in self.columns:
-                if datakey.__class__ == tuple:
+                if isinstance(datakey, tuple):
                     # create copy
-                    tmpDatakey = list(datakey[1])
                     # append column if necessary
                     if column[0] is not None:
-                        tmpDatakey.append(column[0])
+                        datakey[1].column = column[0]
 
-                    xvalues = (self.data.getData(datakey[0], 'value', None))
-                    row.append(self.data.getData(tmpDatakey, column[1], self.basedata, xvalues))
-                else :
-                    # create copy
-                    tmpDatakey = list(datakey)
+                    xvalues = (self._data.getData(datakey[0], 'value', None))
+                    row.append(self._data.getData(datakey[1], column[1], self._basedata, xvalues))
+                else:
                     # append column
                     if column[0] is not None:
-                        tmpDatakey.append(column[0])
+                        datakey.column = column[0]
 
-                    xvalues = (self.data.getXValues(tmpDatakey, 'value'))
-                    row.append(self.data.getData(tmpDatakey, column[1], self.basedata, xvalues))
+                    xvalues = (self._data.getXValues(datakey))
+                    row.append(self._data.getData(datakey, column[1], self._basedata, xvalues))
 
                     # test for right dimension
                 if row[-1].ndim != 0:
@@ -127,33 +171,27 @@ class BaseTableWriter(BaseObject):
         tableData = []
         headings = []
 
-        for idxData, datakey in enumerate(self.input):
+        for rowInput in self._rows:
             for column in self.columns:
                 row = []
+                datakey = rowInput._data
                 # get heading either from provided list or the executioner one
-                if self.headings:
-                    headings.append('{0}-{1}'.format(self.headings[idxData], column[1]))
-                else:
-                    headings.append('{0}-{1}'.format(self.data.getLegend(datakey, column), column[1]))
+                headings.append('{0}-{1[0]}/{1[1]}'.format(rowInput._name, column))
 
-                if datakey.__class__ == tuple:
-                    # create copy
-                    tmpDatakey = list(datakey[1])
+                if isinstance(datakey, tuple):
                     # append column if necessary
                     if column[0] is not None:
-                        tmpDatakey.append(column[0])
+                        datakey[1].column = column[0]
 
-                    xvalues = (self.data.getData(datakey[0], 'value', None))
-                    result = self.data.getData(tmpDatakey, column[1], self.basedata, xvalues)
+                    xvalues = (self._data.getData(datakey[0], 'value', None))
+                    result = self._data.getData(datakey[1], column[1], self._basedata, xvalues)
                 else:
-                    # create copy
-                    tmpDatakey = list(datakey)
                     # append column
                     if column[0] is not None:
-                        tmpDatakey.append(column[0])
+                        datakey.column = column[0]
 
-                    xvalues = (self.data.getXValues(tmpDatakey, 'value'))
-                    result = self.data.getData(tmpDatakey, column[1], self.basedata, xvalues)
+                    xvalues = (self._data.getXValues(datakey))
+                    result = self._data.getData(datakey, column[1], self._basedata, xvalues)
 
                     # test for right dimension
                 if result.ndim != 1:
@@ -164,7 +202,7 @@ class BaseTableWriter(BaseObject):
                 tableData.append(row)
 
                 # transpose            
-        if self._options['transpose']:
+        if self._getOption('transpose'):
             tableData = numpy.array(tableData).T.tolist()
 
         tableData = [headings] + tableData
@@ -174,11 +212,11 @@ class BaseTableWriter(BaseObject):
     def setTitle(self, title):
         if self.title is None:
             self.title = title
-        else :
+        else:
             self.title = str(self.title)
 
     def _checkInput(self):
-        if self.input is []:
+        if self._rows is []:
             raise self._exception('No input data specified')
 
         # make a copy
@@ -196,17 +234,11 @@ class BaseTableWriter(BaseObject):
             if column.__class__ != list:
                 self.columns[idx] = [column, 'value']
 
-        if not self.ndim in [0, 1, 2]:
+        if self.ndim not in [0, 1, 2]:
             raise self._exception('Not supported dimension')
 
     def writeTable(self, path, filename, tableData):
         """
         Base method for writing the prepared table to a file
         """
-        with open(path + '/' + filename, 'w') as tableFile:
-            for row in tableData:
-                tmpStr = ''
-                for column in row:
-                    tmpStr += '{0}\t'.format(column, self._options['separator'])
-
-                tableFile.write(tmpStr + '\n')
+        raise self._exception('Not yet implemented')

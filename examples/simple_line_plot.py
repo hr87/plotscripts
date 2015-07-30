@@ -15,7 +15,7 @@ index.calcType = 'num'
 index.num = 10
 
 line = plot.addLine('num')                      # add a line
-line.setData((index, index))                    # setting x and y values
+line.setIndex((index, index))                    # setting x and y values
 line.color = line.ColorList.red                 # set line color
 line.lineStyle = line.LineStyleList.dashed      # set line style
 line.markerStyle = line.MarkerStyleList.dot     # set marker style
@@ -27,7 +27,7 @@ index2.num = 10
 index2.max = 10
 
 line = plot.addLine('rnd')                      # add second line
-line.setData((index, index2))                   # setting x and y values
+line.setIndex((index, index2))                   # setting x and y values
 line.color = line.ColorList.blue                # set line color
 line.lineStyle = line.LineStyleList.solid       # set line style
 inputArgs.run()                                 # execute

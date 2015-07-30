@@ -4,7 +4,9 @@ Created on Apr 11, 2013
 @author: hammhr
 """
 
-from ..base.baseobject import BaseObject
+import copy
+from plotscripts.base.baseobject import BaseObject
+from plotscripts.data.basedata import BaseData
 
 
 class BasePlotter(BaseObject):
@@ -12,17 +14,16 @@ class BasePlotter(BaseObject):
     Basic Plotter class
     """
 
-    def __init__(self):
+    def __init__(self, name):
         """
         Constructor
         """
         super().__init__()
-        self.method     = []    # plot method
-        self.columns    = []    # columns to be plotted
-        self.basedata   = None  # base data for comparison
-        self.title      = None  # plot title
-        self.xLabel     = None  # x label
-        self.yLabel     = None  # y label
+        self.method = []  # plot method
+        self.columns = []  # columns to be plotted
+        self.title = name  # plot title
+        self.xLabel = None  # x label
+        self.yLabel = None  # y label
 
         # default path and filename options
         self._addDefault('plotdir', '.', 'folder for plots')
@@ -34,7 +35,9 @@ class BasePlotter(BaseObject):
         self._addDefault('use_dirs', True, 'creates folder hierarchy for plots', 'private')
 
         # internal
-        self._data       = None  # storage for data
+        self._data = None  # storage for data
+        self._basedata = None  # base data for comparison
+        self._name = name
 
     def plot(self):
         """
@@ -42,21 +45,24 @@ class BasePlotter(BaseObject):
         """
         raise self._exception('Plotting method not implemented yet in ' + self.__class__.__name__)
 
-    def setTitle(self, title):
-        if self.title == None :
-            self.title = title
-        else :
-            self.title = str(self.title)
-
     def setData(self, data):
         """ Set data set
         :param data: data set
         :return: None
         """
         self._data = data
-        
+
+    def setBaseIndex(self, index):
+        """ Set the index for the base data
+        :param index: index object
+        :return: None
+        """
+        if not isinstance(index, BaseData.Index):
+            raise self._exception('Invalid index object "{0}"'.format(index))
+        self._basedata = copy.deepcopy(index)
+
     def _checkInput(self):
-        if self.method == [] :
+        if self.method == []:
             self.method = ['value']
 
         # setting columns
@@ -65,4 +71,3 @@ class BasePlotter(BaseObject):
 
         if self.columns.__class__.__name__ != 'list':
             self.columns = [self.columns]
-

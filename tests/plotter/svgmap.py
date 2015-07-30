@@ -10,7 +10,7 @@ import plotscripts.geometry.rectangular
 outputPath = 'tests/plotter/'
 
 
-class _SvgMapTest(unittest.TestCase):
+class SvgMapTest(unittest.TestCase):
     def setUp(self):
         """ test init function """
         pass
@@ -32,7 +32,7 @@ class _SvgMapTest(unittest.TestCase):
         index = data.index()
         index.calcType = 'num'
         index.num = 25
-        mapPlot.setData(index)
+        mapPlot.setIndex(index)
         inputArgs.run()  # execute
         self.assertTrue(filecmp.cmp(outputPath + 'svgmap_1_num_value_none.svg',
                                     outputPath + 'gold/svgmap_1_num_value_none.svg', False),
@@ -41,5 +41,5 @@ class _SvgMapTest(unittest.TestCase):
 
 def testSuite():
     suite = unittest.TestSuite()
-    suite.addTest(_SvgMapTest('test_plotter'))
+    suite.addTest(SvgMapTest('test_plotter'))
     return suite

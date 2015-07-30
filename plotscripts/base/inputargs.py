@@ -49,7 +49,7 @@ class InputArgs(BaseObject):
         """
         if not issubclass(plotterClass, BasePlotter):
             self._error(plotterClass.__name__ + 'is not a valid plotter')
-        newPlot = plotterClass()
+        newPlot = plotterClass(name)
         self._plots[name] = newPlot
         return newPlot
 
@@ -62,7 +62,7 @@ class InputArgs(BaseObject):
         """
         if not issubclass(tableWriterClass, BaseTableWriter):
             self._error(tableWriterClass.__name__ + 'is not a valid table writer')
-        newTable = tableWriterClass()
+        newTable = tableWriterClass(name)
         self._tables[name] = newTable
         return newTable
 
@@ -110,8 +110,6 @@ class InputArgs(BaseObject):
                 return 1
 
             try:
-                # set plot title
-                self._plots[plotTitle].setTitle(plotTitle)
                 # provide data
                 self._plots[plotTitle].setData(self._data)
                 # set option
@@ -137,10 +135,8 @@ class InputArgs(BaseObject):
                 self._error('{0} is not a valid table writer in table {2}'.format(tableWriterName, tableTitle))
 
             try:
-                # set plot title
-                self._tables[tableTitle].setTitle(tableTitle)
                 # provide data
-                self._tables[tableTitle].data = self._data
+                self._tables[tableTitle].setData(self._data)
                 # set option
                 self._tables[tableTitle].copyOptions(self._options)
                 # write table

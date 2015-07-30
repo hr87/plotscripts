@@ -13,11 +13,11 @@ class LinePlotter(BaseLinePlotter):
     Basic plotter for two 2D plots using matplotlib
     """
 
-    def __init__(self):
+    def __init__(self, name):
         """
         Constructor
         """
-        super().__init__()
+        super().__init__(name)
         # add options
         self._addDefault('dpi', 300, 'plot resolution', 'private')
         self._addDefault('format', 'svg', 'plot file format', 'private')

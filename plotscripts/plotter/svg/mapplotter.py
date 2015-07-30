@@ -16,11 +16,11 @@ class MapPlotter(BaseMap):
     classdocs
     """
 
-    def __init__(self):
+    def __init__(self, name):
         """
         Constructor
         """
-        super().__init__()
+        super().__init__(name)
         self._addDefault('lineWidth', 0.5, 'width of frame lines', 'private')
         self._addDefault('stroke', None, 'stroke color for data fields', 'private')
         self._addDefault('strokeWidth', 1, 'strocke width', 'private')
@@ -79,15 +79,19 @@ class MapPlotter(BaseMap):
             except IndexError as e:
                 raise self._exception('Wrong assignment to blocks') from e
 
-        if not values.shape[0] == valuePaths.shape[0]:
-            raise self._exception('Non matching number of values for geometry. Values {0[0]}, geometry {1}'.format(values.shape, valuePaths.shape[0]))
+        if values.shape[0] != valuePaths.shape[0]:
+            values = values.T
+            # try transposed values
+            if values.shape[0] != valuePaths.shape[0]:
+                raise self._exception('Non matching number of values for geometry. Values {0}, geometry {1}'
+                                      .format(values.T.shape, valuePaths.shape[0]))
 
         if self._getOption('extrema') == []:
             # get extrema with or without the nan regions
             if self._getOption('nanRegions'):
-                extrema         = self._geometry.getExtrema(valuePaths, None)
+                extrema = self._geometry.getExtrema(valuePaths, None)
             else:
-                extrema         = self._geometry.getExtrema(valuePaths, values)
+                extrema = self._geometry.getExtrema(valuePaths, values)
 
             if self._getOption('sameExtrema'):
                 extrema[0] = min(extrema[0], extrema[2])
@@ -101,26 +105,26 @@ class MapPlotter(BaseMap):
         yAxis.setAxis(extrema[2], extrema[3])
 
         # set up color map
-        colormap        = Colormap(self._getOption('colormap'))
+        colormap = Colormap(self._getOption('colormap'))
         colormap.create(lvls)
         colormap.setupGeometry([0.83, 0.1], [0.88, 0.9], 0.0125)
 
         # font size
         #TODO get scale from axis
-        fontSize        = self._getOption('fontSize')
-        mapFontSize     = self._getOption('mapFontSize')
-        fontOffset      = fontSize / 4
+        fontSize = self._getOption('fontSize')
+        mapFontSize = self._getOption('mapFontSize')
+        fontOffset = fontSize / 4
         if mapFontSize <= 0:
             self._warning('Map font size = {0}, setting to 1!'.format(mapFontSize))
             mapFontSize = 1
 
         # scale points
-        valuePaths[:, 0, :]  = xAxis.convertPoints(valuePaths[:, 0, :])
-        valuePaths[:, 1, :]  = yAxis.convertPoints(valuePaths[:, 1, :])
-        overlayPaths[:, 0, :]   = xAxis.convertPoints(overlayPaths[:, 0, :])
-        overlayPaths[:, 1, :]   = yAxis.convertPoints(overlayPaths[:, 1, :])
-        textPoints[:, 0]     = xAxis.convertPoints(textPoints[:, 0])
-        textPoints[:, 1]     = yAxis.convertPoints(textPoints[:, 1])
+        valuePaths[:, 0, :] = xAxis.convertPoints(valuePaths[:, 0, :])
+        valuePaths[:, 1, :] = yAxis.convertPoints(valuePaths[:, 1, :])
+        overlayPaths[:, 0, :] = xAxis.convertPoints(overlayPaths[:, 0, :])
+        overlayPaths[:, 1, :] = yAxis.convertPoints(overlayPaths[:, 1, :])
+        textPoints[:, 0] = xAxis.convertPoints(textPoints[:, 0])
+        textPoints[:, 1] = yAxis.convertPoints(textPoints[:, 1])
 
         # open file
         try :

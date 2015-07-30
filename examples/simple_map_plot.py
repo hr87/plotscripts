@@ -18,6 +18,6 @@ index.calcType = 'num'
 index.num = 25
 
 mapPlot = plot.addMap('test')           # add a map
-mapPlot.setData(index)                  # set map data
+mapPlot.setIndex(index)                  # set map data
 
 inputArgs.run()                         # execute

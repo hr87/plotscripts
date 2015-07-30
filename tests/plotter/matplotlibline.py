@@ -29,7 +29,7 @@ class _MatplotlibLineTest(unittest.TestCase):
         index = data.index()
         index.calcType = 'num'
         index.num = 10
-        line.setData((index, index))                    # setting x and y values
+        line.setIndex((index, index))                    # setting x and y values
         line.color = line.ColorList.red                 # set line color
         line.lineStyle = line.LineStyleList.dashed      # set line style
         line.markerStyle = line.MarkerStyleList.dot     # set marker style

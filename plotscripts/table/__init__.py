@@ -1,1 +1,2 @@
-from plotscripts.table.basetablewriter import BaseTableWriter
+from plotscripts.table.txttablewriter import TxtTableWriter
+from plotscripts.table.latextablewriter import LatexTableWriter
