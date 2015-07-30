@@ -106,7 +106,7 @@ class BaseMapPlotter(BasePlotter):
         # getting defaults from geometry
         # TODO self._retrieveOptions(self._geometry.getOptions)
 
-        for method in self.method:
+        for method in self.methods:
             for column in self.columns:
 
                 values = []
@@ -124,9 +124,12 @@ class BaseMapPlotter(BasePlotter):
                     # check column 
                     if column is not None:
                         datakey.column = column
+                    if method is not None:
+                        datakey.method = method
 
+                    # TODO allow x values for interpolation
                     # get values
-                    tmp = self._data.getData(datakey, method, self._basedata, None)
+                    tmp = self._data.getData(datakey, self._basedata, None)
 
                     # transpose values if wanted
                     if mapPlot.transpose:

@@ -6,6 +6,7 @@ Created on Apr 11, 2013
 
 import math
 import numpy
+import enum
 
 from plotscripts.base.baseobject import BaseObject
 from plotscripts.base.basecontainer import BaseContainer
@@ -23,6 +24,15 @@ class BaseData(BaseObject):
     :var statistics: input for statistic calculations, different sets possible, same input syntax like plooter input
     """
 
+    @enum.unique
+    class Methods(enum.Enum):
+        value = 0
+        difference = 1
+        deviation = 2
+        normalized = 3
+        normalizedDifference = 4
+        normalizedDeviation = 5
+
     class Index(BaseContainer):
         """ Class to create an index
         :var columns: list or single column
@@ -32,6 +42,7 @@ class BaseData(BaseObject):
             """ Constructor """
             super().__init__()
             self.column = None
+            self.method = BaseData.Methods.value
 
         def getIndex(self):
             """ Create and return index
@@ -121,7 +132,7 @@ class BaseData(BaseObject):
             self._statistics[key].ref = self
             self._statistics[key].processData()
 
-    def getData(self, index, method='value', baseIndex=None, x=None):
+    def getData(self, index, baseIndex=None, x=None):
         """
         Get the data out of the database
 
@@ -132,47 +143,32 @@ class BaseData(BaseObject):
         grad () gradient of data, x values changed
 
         :param index: list with index of data
-        :param method: method for data processing, default = value
         :param baseIndex: list with index for base data needed for some methods, default = None
         :param x: x values for some methods, may be changed, default = None
         :return: numpy array with data
         """
         from plotscripts.data.statisticdata import StatisticData
         # check the length of index
-        self._debug('Getting data for {0} {1}; base {2}'.format(index, method, baseIndex))
+        self._debug('Getting data for {0}; base {1}'.format(index, baseIndex))
 
         # check for statistic
         if (not isinstance(self, StatisticData)) and isinstance(index, StatisticData.StatisticIndex):
             try:
-                return self._statistics[index.name].getData(index, method, baseIndex, x)
+                return self._statistics[index.name].getData(index, baseIndex, x)
             except KeyError:
                 raise self._exception('No statistic with name "{0}"'.format(index.name))
 
         # get normalized data
-        if method in ['rel_norm', 'diff_norm']:
-            values = self.getData(index, 'norm', None)
-        else:
-            values = self._getClassData(index)
+        values = self._getClassData(index)
 
-        if method == 'grad':
-            if x is None:
-                raise self._exception('x values needed for gradient')
-            x = self._enchantX(x)
-
-            # which type of base data
-        if method in ['rel_norm', 'diff_norm']:
-            baseMeth = 'norm'
-        else:
-            baseMeth = 'value'
-
-        # try to get data and base data
+        # try to get base data
         if baseIndex is not None:
             self._debug('Getting base data')
-            if baseIndex.__class__ == tuple:
-                baseValues = self.getData(baseIndex[0], baseMeth)
+            if isinstance(baseIndex, tuple):
+                baseValues = self.getData(baseIndex[0])
                 baseX = self.getData(baseIndex[1])
             else:
-                baseValues = self.getData(baseIndex, baseMeth)
+                baseValues = self.getData(baseIndex)
                 baseX = self.getXValues(baseIndex)
         else:
             baseValues = None
@@ -183,73 +179,66 @@ class BaseData(BaseObject):
         if baseValues is not None and baseValues.dtype == numpy.dtype('object'):
             raise self._exception('Base data shape is not rectangular')
 
-        # check for base data, if we need it
-        if method in ['diff', 'rel', 'rel_norm', 'diff_norm']:
-            if baseIndex is None:
-                raise self._exception('Base data needed for method: ' + str(method))
-
-            # try interpolations
-            if x is not None and baseValues.ndim > 0 and baseX is not None:
-                # sort x and base values increasing
-                sortX = numpy.argsort(x)
-                x = x[sortX]
-                sortBase = numpy.argsort(baseX)
-                baseX = baseX[sortBase]
-                baseValues = baseValues[sortBase]
-
-                # interpolate
-                baseValues = numpy.interp(x, baseX, baseValues)
-
-                # undo sort
-                baseValues = baseValues[numpy.argsort(sortBase)]
-
-            elif x is None:
-                self._warning('Cannot interpolate')
-
         # calculate difference and deviations
-        values = self._calc(x, values, method, baseValues)
+        values = self._calc(x, values, index.method, baseValues, baseX)
 
         return values
 
-    def _calc(self, x, y, method, base_values):
-        # decide what to do
-        if method == 'value':  # normal value
+    def _calc(self, x, y, method, base_values, baseX):
+        # check method
+        if method not in self.Methods:
+            raise self._exception('Unknown method ' + str(method))
+
+        # nothing to do for values
+        if method == self.Methods.value:  # normal value
             pass
-        elif method == 'norm':
-            # normalize value if necessary
+        # normalize values
+        if method in [self.Methods.normalized, self.Methods.normalizedDifference,
+                      self.Methods.normalizedDeviation]:
             normMethod = self._getOption('normalize')
             if normMethod == 'avg':
-                y /= y[~numpy.isnan(y)].mean()
+                y = y / y[~numpy.isnan(y)].mean()
             elif normMethod == 'max':
-                y /= numpy.nanmax(y)
+                y = y / numpy.nanmax(y)
             elif normMethod == 'sum':
-                y /= numpy.nansum(y)
+                y = y / numpy.nansum(y)
             else:
-                raise self._exception('Unknown normalize function {0}'.format(normMethod))
-        elif method in ['diff', 'diff_norm']:  # difference
+                raise self._exception('Unknown normalization function {0}'.format(normMethod))
+        # calculate difference
+        if method in [self.Methods.difference, self.Methods.normalizedDifference]:
+            if base_values is None:
+                raise self._exception('Base data needed for difference')
+            base_values = self._interpolate(x, baseX, base_values)
             y = y - base_values
-        elif method in ['rel', 'rel_norm']:  # relative deviation
+        # calculate deviation in percent
+        if method in [self.Methods.deviation, self.Methods.normalizedDeviation]:
+            if base_values is None:
+                raise self._exception('Base data needed for deviation')
+            base_values = self._interpolate(x, baseX, base_values)
             y = (y - base_values) / base_values * 100
-        elif method == 'grad':  # gradient
-            y = (y[:-1] - y[1:]) / (x[:-1] - x[1:])
-        else:
-            raise self._exception('Unknown method ' + str(method))
 
         return y.squeeze()
 
-    def _enchantX(self, x):
-        x1 = x.copy()
-        # little bit magic to assign new values to x
-        # not working at the moment correctly, if x is int array
-        x_new = (x[:-1] + x[1:]) / 2.0
-        x.resize(x_new.size, refcheck=False)
-        x[:] = x_new[:]
+    def _interpolate(self, x1, x2, y):
+        if x1 is not None and y.ndim > 0 and x2 is not None:
+            # sort x and base values increasing
+            sortX = numpy.argsort(x1)
+            x = x1[sortX]
+            sortBase = numpy.argsort(x2)
+            baseX = x2[sortBase]
+            y = y[sortBase]
+            # interpolate
+            y = numpy.interp(x, baseX, y)
+            # undo sort
+            y = y[numpy.argsort(sortBase)]
 
-        return x1
+        elif x1 is None or x2 is None:
+            self._warning('Cannot interpolate')
+        return y
 
     def getSteps(self, values, numSteps, method, zeroFix=False):
         """
-        base funciton to get value levels for map plots
+        base function to get value levels for map plots
         round to next nice level
         :param values: ndarray of values to calculate steps for
         :param numSteps: number of Steps
@@ -344,18 +333,5 @@ class BaseData(BaseObject):
             raise self._exception('Columns must be a list')
 
         for key, statistic in self._statistics.items():
-            if statistic.__class__ != StatisticData:
+            if not isinstance(statistic, StatisticData):
                 raise self._exception('Wrong class for statistic {0}'.format(key))
-                # if statistic.input.__class__ != list:
-                #     raise self._exception('Statistic index must be a list for statistic {0}'.format(key))
-                #
-                # # test for column per statistic
-                # if statistic.columns.__class__ != list:
-                #     raise self._exception('Column list must be a list')
-                # if statistic.columns == []:
-                #    if self.columns != []:
-                #        statistic.columns = list(self.columns)
-                #    else:
-                #        raise self._exception('No default and no statistic columns given for {0}'.format(key))
-                # if statistic.weights == []:
-                #     statistic.weights = [1/len(statistic.input)] * len(statistic.input)

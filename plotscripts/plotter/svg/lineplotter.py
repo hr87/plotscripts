@@ -22,7 +22,7 @@ class LinePlotter(BaseLinePlotter):
         # test for input
         self._checkInput()
 
-        for method in self.method :
+        for method in self.methods :
             # create path
             path = self._cleanPath('/{0}/{1}/'.format(self.title, method))
 
@@ -46,7 +46,7 @@ class LinePlotter(BaseLinePlotter):
 
                     for datakey in self.input :
                         # get arrays
-                        values = self._data.getData(datakey, column, method, self._basedata)
+                        values = self._data.getData(datakey, method, self._basedata)
                         self.writeData(f_plot, values)
 
                         # write legend

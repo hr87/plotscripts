@@ -19,8 +19,8 @@ class BasePlotter(BaseObject):
         Constructor
         """
         super().__init__()
-        self.method = []  # plot method
-        self.columns = []  # columns to be plotted
+        self.methods = [None]  # plot method
+        self.columns = [None]  # columns to be plotted
         self.title = name  # plot title
         self.xLabel = None  # x label
         self.yLabel = None  # y label
@@ -62,12 +62,9 @@ class BasePlotter(BaseObject):
         self._basedata = copy.deepcopy(index)
 
     def _checkInput(self):
-        if self.method == []:
-            self.method = ['value']
-
         # setting columns
-        if self.columns is None or self.columns == []:
-            self.columns = [None]
-
-        if self.columns.__class__.__name__ != 'list':
+        if not isinstance(self.methods, list):
+            self.methods = [self.methods]
+        if not isinstance(self.columns, list):
             self.columns = [self.columns]
+

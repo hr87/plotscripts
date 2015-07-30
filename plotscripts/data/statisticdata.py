@@ -33,14 +33,14 @@ class StatisticData(BaseData):
         avgMax = 7
 
     _calcMethods = {            # dict with all functions to calc statistic
-        Fields.avg: lambda a: a.mean(axis=0),
-        Fields.sum: lambda a: a.sum(axis=0),
-        Fields.min: lambda a: a.min(axis=0),
-        Fields.max: lambda a: a.max(axis=0),
-        Fields.variance: lambda a: a.var(axis=0),
-        Fields.sigma: lambda a: numpy.sqrt(a.var(axis=0)),
-        Fields.avgMin: lambda a: a.mean(axis=0) + numpy.sqrt(a.var(axis=0)),
-        Fields.avgMax: lambda a: a.mean(axis=0) - numpy.sqrt(a.var(axis=0))
+        Fields.avg: lambda a, w: (w * a).mean(axis=0),
+        Fields.sum: lambda a, w: a.sum(axis=0),
+        Fields.min: lambda a, w: a.min(axis=0),
+        Fields.max: lambda a, w: a.max(axis=0),
+        Fields.variance: lambda a, w: (w * a).var(axis=0),
+        Fields.sigma: lambda a, w: numpy.sqrt((w * a).var(axis=0)),
+        Fields.avgMax: lambda a, w: (w * a).mean(axis=0) + numpy.sqrt((w * a).var(axis=0)),
+        Fields.avgMin: lambda a, w: (w * a).mean(axis=0) - numpy.sqrt((w * a).var(axis=0))
     }
 
     class StatisticIndex(BaseData.Index):
@@ -58,8 +58,8 @@ class StatisticData(BaseData):
     def __init__(self, name):
         super().__init__()
         self.name      = name
-        self.columns   = None
-        self.method    = 'value'
+        self.columns   = [None]
+        self.method    = None
         self.basedata  = None
 
         # internal
@@ -90,9 +90,11 @@ class StatisticData(BaseData):
             for column in self.columns:
                 tmpData = []
                 for idx, index in enumerate(self._input):
-                    if index.column is None:
+                    if column is not None:
                         index.column = column
-                    tmpData.append(self.ref.getData(index, self.method, self.basedata, None))
+                    if self.method is not None:
+                        index.method = self.method
+                    tmpData.append(self.ref.getData(index, self.basedata, None))
 
                 # convert to numpy array
                 tmpData = numpy.array(tmpData)
@@ -103,7 +105,7 @@ class StatisticData(BaseData):
                 # add values
                 self._data[column] = {}
                 for calc in self.Fields:
-                    self._data[column][calc] = self._calcMethods[calc](tmpData)
+                    self._data[column][calc] = self._calcMethods[calc](tmpData, self._weights)
 
         except self.Exception as e:
             raise self._exception('Could not calculate statistic "{0}"'.format(self.name)) from e

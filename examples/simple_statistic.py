@@ -1,9 +1,5 @@
-'''
-Created on Aug 29, 2013
-
-@author: Hans R Hammer
-statistic stest file
-'''
+""" Statistic example file
+"""
 
 import plotscripts.data.testdata
 import plotscripts.plotter.matplotlib
@@ -23,7 +19,7 @@ data = inputArg.setData(plotscripts.data.TestData)
 # create some statistics, create sum, mean, stdDeviation, meanMax|Min = mean +- stdDeviation
 # the input is the same as for the plots
 # the name is later used to get the data from the statistic
-# weights correspond to number of inputs above (e.g. 3 here), the default if not given is 1/N
+# weights are the weighting for the average, the default if not given is 1/N
 # the columns are for which variables the statistic should be prepared
 # the input list is prepared in advance
 stat = data.addStatistic('test')

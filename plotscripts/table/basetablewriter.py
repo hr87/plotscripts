@@ -42,7 +42,8 @@ class BaseTableWriter(BaseObject):
     def __init__(self, name):
         super().__init__()
 
-        self.columns = []  # columns to catch, list with column and method
+        self.columns = [None]  # columns to catch
+        self.methods = [None]
         self.title = name  # plot title
         self.ndim = 0
 
@@ -127,7 +128,8 @@ class BaseTableWriter(BaseObject):
 
             # create headings
             for column in self.columns:
-                row.append('{0[0]}/{0[1]}'.format(column))
+                for method in self.methods:
+                    row.append('{0}/{1}'.format(column, method))
 
             tableData.append(row)
 
@@ -142,25 +144,30 @@ class BaseTableWriter(BaseObject):
                 row.append(rowInput._name)
 
             for column in self.columns:
-                if isinstance(datakey, tuple):
-                    # create copy
-                    # append column if necessary
-                    if column[0] is not None:
-                        datakey[1].column = column[0]
+                for method in self.methods:
+                    if isinstance(datakey, tuple):
+                        # create copy
+                        # append column if necessary
+                        if column[0] is not None:
+                            datakey[1].column = column[0]
+                        if method is not None:
+                            datakey[1].method = method
 
-                    xvalues = (self._data.getData(datakey[0], 'value', None))
-                    row.append(self._data.getData(datakey[1], column[1], self._basedata, xvalues))
-                else:
-                    # append column
-                    if column[0] is not None:
-                        datakey.column = column[0]
+                        xvalues = (self._data.getData(datakey[0]))
+                        row.append(self._data.getData(datakey[1], self._basedata, xvalues))
+                    else:
+                        # append column
+                        if column is not None:
+                            datakey.column = column
+                        if method is not None:
+                            datakey.method = method
 
-                    xvalues = (self._data.getXValues(datakey))
-                    row.append(self._data.getData(datakey, column[1], self._basedata, xvalues))
+                        xvalues = (self._data.getXValues(datakey))
+                        row.append(self._data.getData(datakey, self._basedata, xvalues))
 
-                    # test for right dimension
-                if row[-1].ndim != 0:
-                    raise self._exception('Data does not fit into table')
+                        # test for right dimension
+                    if row[-1].ndim != 0:
+                        raise self._exception('Data does not fit into table')
 
             # append the row to list
             tableData.append(row)
@@ -173,33 +180,38 @@ class BaseTableWriter(BaseObject):
 
         for rowInput in self._rows:
             for column in self.columns:
-                row = []
-                datakey = rowInput._data
-                # get heading either from provided list or the executioner one
-                headings.append('{0}-{1[0]}/{1[1]}'.format(rowInput._name, column))
+                for method in self.methods:
+                    row = []
+                    datakey = rowInput._data
+                    # get heading either from provided list or the executioner one
+                    headings.append('{0}-{1}/{2}'.format(rowInput._name, column, method))
 
-                if isinstance(datakey, tuple):
-                    # append column if necessary
-                    if column[0] is not None:
-                        datakey[1].column = column[0]
+                    if isinstance(datakey, tuple):
+                        # append column if necessary
+                        if column is not None:
+                            datakey[1].column = column
+                        if method is not None:
+                            datakey[1].method = method
 
-                    xvalues = (self._data.getData(datakey[0], 'value', None))
-                    result = self._data.getData(datakey[1], column[1], self._basedata, xvalues)
-                else:
-                    # append column
-                    if column[0] is not None:
-                        datakey.column = column[0]
+                        xvalues = (self._data.getData(datakey[0]))
+                        result = self._data.getData(datakey[1], self._basedata, xvalues)
+                    else:
+                        # append column
+                        if column is not None:
+                            datakey.column = column
+                        if method is not None:
+                            datakey.method = method
 
-                    xvalues = (self._data.getXValues(datakey))
-                    result = self._data.getData(datakey, column[1], self._basedata, xvalues)
+                        xvalues = (self._data.getXValues(datakey))
+                        result = self._data.getData(datakey, self._basedata, xvalues)
 
-                    # test for right dimension
-                if result.ndim != 1:
-                    raise self._exception('Data does not fit into table')
+                        # test for right dimension
+                    if result.ndim != 1:
+                        raise self._exception('Data does not fit into table')
 
-                row.extend(result.tolist())
+                    row.extend(result.tolist())
 
-                tableData.append(row)
+                    tableData.append(row)
 
                 # transpose            
         if self._getOption('transpose'):
@@ -229,16 +241,11 @@ class BaseTableWriter(BaseObject):
         if self.columns.__class__ != list:
             self.columns = [self.columns]
 
-        # convert all column entries in list
-        for idx, column in enumerate(self.columns):
-            if column.__class__ != list:
-                self.columns[idx] = [column, 'value']
-
-        if self.ndim not in [0, 1, 2]:
+        if self.ndim not in [0, 1]:
             raise self._exception('Not supported dimension')
 
     def writeTable(self, path, filename, tableData):
         """
         Base method for writing the prepared table to a file
         """
-        raise self._exception('Not yet implemented')
+        raise self._exception('Not implemented in base class')

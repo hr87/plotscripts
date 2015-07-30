@@ -126,7 +126,7 @@ class BaseLinePlotter(BasePlotter):
         self._checkInput()
         self._activateDefaults()
 
-        for method in self.method:
+        for method in self.methods:
             # create path
             path = self._getOption('plotdir')
             if self._getOption('use_dirs'):
@@ -160,14 +160,18 @@ class BaseLinePlotter(BasePlotter):
                         # append column if necessary
                         if column is not None:
                             datakey[1].column = column
+                        if method is not None:
+                            datakey[1].method = method
 
-                        line.xValues = self._data.getData(datakey[0], 'value', None)
-                        line.yValues = self._data.getData(datakey[1], method, self._basedata, line.xValues)
+                        line.xValues = self._data.getData(datakey[0])
+                        line.yValues = self._data.getData(datakey[1], self._basedata, line.xValues)
 
                     else:
                         # append column
                         if column is not None:
                             datakey.column = column
+                        if method is not None:
+                            datakey.method = method
 
                         if line.xValues is not None:
                             pass
@@ -177,7 +181,7 @@ class BaseLinePlotter(BasePlotter):
                             line.xValues = self._data.getXValues(datakey)
                             if line.xValues is None:
                                 raise self._exception('No default x values found')
-                        line.yValues = self._data.getData(datakey, method, self._basedata, line.xValues)
+                        line.yValues = self._data.getData(datakey, self._basedata, line.xValues)
 
                     # set legend to default, if not provided
                     if not line._name:
