@@ -3,6 +3,8 @@
 
 import numpy
 import copy
+import enum
+
 from plotscripts.data.basedata import BaseData
 
 
@@ -14,6 +16,32 @@ class StatisticData(BaseData):
     :var method:
     :var basedata:
     """
+
+    @enum.unique
+    class Fields(enum.Enum):
+        """ Enum class that holds all available statistics and the according calculations
+
+        Add the calculation function in _calcMethods
+        """
+        avg = 0
+        sum = 1
+        min = 2
+        max = 3
+        variance = 4
+        sigma = 5
+        avgMin = 6
+        avgMax = 7
+
+    _calcMethods = {            # dict with all functions to calc statistic
+        Fields.avg: lambda a: a.mean(axis=0),
+        Fields.sum: lambda a: a.sum(axis=0),
+        Fields.min: lambda a: a.min(axis=0),
+        Fields.max: lambda a: a.max(axis=0),
+        Fields.variance: lambda a: a.var(axis=0),
+        Fields.sigma: lambda a: numpy.sqrt(a.var(axis=0)),
+        Fields.avgMin: lambda a: a.mean(axis=0) + numpy.sqrt(a.var(axis=0)),
+        Fields.avgMax: lambda a: a.mean(axis=0) - numpy.sqrt(a.var(axis=0))
+    }
 
     class StatisticIndex(BaseData.Index):
         """ Class for a statistic index, used to retrieve data from a statistic
@@ -74,14 +102,8 @@ class StatisticData(BaseData):
 
                 # add values
                 self._data[column] = {}
-                self._data[column]['sum'] = tmpData.sum(axis=0)
-                self._data[column]['avg'] = (tmpData * self._weights).mean(axis=0)
-                self._data[column]['min'] = tmpData.min(axis=0)
-                self._data[column]['max'] = tmpData.max(axis=0)
-                self._data[column]['var'] = tmpData.var(axis=0)
-                self._data[column]['sigma'] = numpy.sqrt(tmpData.var(axis=0))
-                self._data[column]['avgMax'] = self._data[column]['avg'] + self._data[column]['sigma']
-                self._data[column]['avgMin'] = self._data[column]['avg'] - self._data[column]['sigma']
+                for calc in self.Fields:
+                    self._data[column][calc] = self._calcMethods[calc](tmpData)
 
         except self.Exception as e:
             raise self._exception('Could not calculate statistic "{0}"'.format(self.name)) from e

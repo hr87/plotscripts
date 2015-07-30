@@ -27,7 +27,7 @@ class StatisticTest(unittest.TestCase):
     def test_avg(self):
         index = self.data.statisticIndex()
         index.name = 'test'
-        index.field = 'avg'
+        index.field = _data.StatisticData.Fields.avg
         index.column = 'column'
         self.assertTrue((self.data.getData(index)
                         == numpy.array([49.5, 100.0])).all())
@@ -35,7 +35,7 @@ class StatisticTest(unittest.TestCase):
     def test_min(self):
         index = self.data.statisticIndex()
         index.name = 'test'
-        index.field = 'min'
+        index.field = _data.StatisticData.Fields.min
         index.column = 'column'
         self.assertTrue((self.data.getData(index)
                         == numpy.array([0.0, 1.0])).all())
@@ -43,7 +43,7 @@ class StatisticTest(unittest.TestCase):
     def test_max(self):
         index = self.data.statisticIndex()
         index.name = 'test'
-        index.field = 'max'
+        index.field = _data.StatisticData.Fields.max
         index.column = 'column'
         self.assertTrue((self.data.getData(index)
                         == numpy.array([99.0, 199.0])).all())

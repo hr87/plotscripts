@@ -8,7 +8,6 @@ plot = inputArgs.addPlot('matplotlib_1', mplplotter.LinePlotter)
 plot.setOption('use_dirs', False)               # do not generate folder structure
 plot.setOption('plotdir', '.')                  # set folder to test folder
 plot.setOption('format', 'png')                 # output format to png
-# TODO use index
 
 index = plotscripts.data.TestData.index()
 index.calcType = 'num'
