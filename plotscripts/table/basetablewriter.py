@@ -144,6 +144,13 @@ class BaseTableWriter(BaseObject):
                 row.append(rowInput._name)
 
             for column in self.columns:
+                # adjust base data column
+                if column is not None:
+                    if isinstance(self._basedata, tuple):
+                        self._basedata[1].column = column
+                    else:
+                        self._basedata.column = column
+
                 for method in self.methods:
                     if isinstance(datakey, tuple):
                         # create copy

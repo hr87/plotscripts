@@ -149,6 +149,13 @@ class BaseLinePlotter(BasePlotter):
                 else:
                     title = self.title
 
+                # adjust base data column
+                if column is not None:
+                    if isinstance(self._basedata, tuple):
+                        self._basedata[1].column = column
+                    else:
+                        self._basedata.column = column
+
                 # get all data
                 for idx, line in enumerate(self._lines):
                     datakey = line._data

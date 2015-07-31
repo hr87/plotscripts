@@ -108,6 +108,12 @@ class BaseMapPlotter(BasePlotter):
 
         for method in self.methods:
             for column in self.columns:
+                # adjust base data column
+                if column is not None:
+                    if isinstance(self._basedata, tuple):
+                        self._basedata[1].column = column
+                    else:
+                        self._basedata.column = column
 
                 values = []
 
