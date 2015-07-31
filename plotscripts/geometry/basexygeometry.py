@@ -7,10 +7,10 @@ Provides a geometry for basic x-y read from a file
 """
 
 import numpy
-from plotscripts.geometry.basegeometry import BaseGeometry
+from plotscripts.geometry.basegeometry import BaseGeometry as _BaseGeometry
 
 
-class BaseXYGeometry(BaseGeometry):
+class BaseXYGeometry(_BaseGeometry):
     """
     Creates a base geometry for for xy points read from a file
     :var fileName: file name of file with points
@@ -55,4 +55,3 @@ class BaseXYGeometry(BaseGeometry):
             raise self._exception('Error converting points to float') from e
         # convert tmp list into numpy array
         self._xyPoints = numpy.array(points)
-

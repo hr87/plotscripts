@@ -5,7 +5,7 @@ Created on Jun 18, 2013
 '''
 
 import plotscripts.data.reactionrates
-import plotscripts.plotter.svg.mapplotter
+import plotscripts.plotter.svg.svgmapplotter
 import plotscripts.geometry.vhtrc.triangular
 #import compare.plotter.matplotlib.base2dplotter
 
@@ -49,7 +49,7 @@ blocks = [1000, 1001, 1002, 1003, 1004, 1005, 1010, 1011, 1012, 1013, 1014, 1015
 layer2 = [blocks[idx] for idx in range(384,768)]
 
 # create a plot    
-inputArg._plots['reaction_rate'] = plotscripts.plotter.svg.mapplotter.MapPlotter()
+inputArg._plots['reaction_rate'] = plotscripts.plotter.svg.svgmapplotter.SvgMapPlotter()
 inputArg._plots['reaction_rate'].geometry  = plotscripts.geometry.vhtrc.triangular.VHTRCTriangular()
 inputArg._plots['reaction_rate'].input     = [ ['flux', layer2], ['pwr', layer2]]
 inputArg._plots['reaction_rate'].columns   = ['flux', 'fission_rate']

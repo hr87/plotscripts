@@ -8,12 +8,12 @@ import os
 import numpy
 import copy
 
-from plotscripts.plotter.baseplotter import BasePlotter
-from plotscripts.base.baseobject import BaseObject
-from plotscripts.data.basedata import BaseData
+from plotscripts.plotter.baseplotter import BasePlotter as _BasePlotter
+from plotscripts.base.basecontainer import BaseContainer as _BaseContainer
+from plotscripts.data.basedata import BaseData as _BaseData
 
 
-class Line(BaseObject):
+class Line(_BaseContainer):
     """ Class describing a line in a line plot. Holds information about values, color etc
 
     :var color:
@@ -82,12 +82,12 @@ class Line(BaseObject):
         :param index: data index object
         :return: None
         """
-        if not (isinstance(index, BaseData.Index) or isinstance(index, tuple)):
+        if not (isinstance(index, _BaseData.BaseIndex) or isinstance(index, tuple)):
             raise self._exception('Invalid index object')
         self._data = copy.deepcopy(index)
 
 
-class BaseLinePlotter(BasePlotter):
+class BaseLinePlotter(_BasePlotter):
     """ Base class for all line plotters
 
     :var xValues:

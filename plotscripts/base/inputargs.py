@@ -6,14 +6,13 @@ Created on Apr 11, 2013
 Class for running the plot scripts
 """
 
-from plotscripts.base.baseobject import BaseObject
-from plotscripts.base.exception import PlotscriptException
-from plotscripts.data.basedata import BaseData
-from plotscripts.plotter.baseplotter import BasePlotter
-from plotscripts.table.basetablewriter import BaseTableWriter
+from plotscripts.base.baseobject import BaseObject as _BaseObject
+from plotscripts.data.basedata import BaseData as _BaseData
+from plotscripts.plotter.baseplotter import BasePlotter as _BasePlotter
+from plotscripts.table.basetablewriter import BaseTableWriter as _BaseTableWriter
 
 
-class InputArgs(BaseObject):
+class InputArgs(_BaseObject):
     """ class for the input, can handle multiple plots at once
     provides options and run() method
     """
@@ -34,7 +33,7 @@ class InputArgs(BaseObject):
         :param kwargs: additional keyword parameters
         :return: reference to executioner
         """
-        if not issubclass(dataClass, BaseData):
+        if not issubclass(dataClass, _BaseData):
             self._error(dataClass.__name__ + 'is not a valid data set')
         newData = dataClass(*args, **kwargs)
         self._data = newData
@@ -47,7 +46,7 @@ class InputArgs(BaseObject):
         :param plotterClass: class of the plotter
         :return: reference to new plot
         """
-        if not issubclass(plotterClass, BasePlotter):
+        if not issubclass(plotterClass, _BasePlotter):
             self._error(plotterClass.__name__ + 'is not a valid plotter')
         newPlot = plotterClass(name)
         self._plots[name] = newPlot
@@ -60,7 +59,7 @@ class InputArgs(BaseObject):
         :param tableWriterClass: class of table writer
         :return: reference to new table
         """
-        if not issubclass(tableWriterClass, BaseTableWriter):
+        if not issubclass(tableWriterClass, _BaseTableWriter):
             self._error(tableWriterClass.__name__ + 'is not a valid table writer')
         newTable = tableWriterClass(name)
         self._tables[name] = newTable
@@ -77,7 +76,7 @@ class InputArgs(BaseObject):
 
         dataName = str(self._data.__class__.__name__)
 
-        if not issubclass(self._data.__class__, BaseData):
+        if not isinstance(self._data, _BaseData):
             self._error(dataName + 'is not a compatible data object')
             return 1
 
@@ -88,7 +87,7 @@ class InputArgs(BaseObject):
         try:
             self._data.processData()
             self._retrieveOptions(self._data)
-        except PlotscriptException as e:
+        except self.Exception as e:
             self._error(e)
             self._out('Could not process data with executioner ' + dataName)
             if self._options['debug']:
@@ -105,7 +104,7 @@ class InputArgs(BaseObject):
             # get plotter name
             plotterName = str(self._plots[plotTitle].__class__.__name__)
             # test for valid plotter
-            if not issubclass(self._plots[plotTitle].__class__, BasePlotter):
+            if not isinstance(self._plots[plotTitle], _BasePlotter):
                 self._error(plotterName + ' is not a valid plotter in plot ' + str(plotTitle))
                 return 1
 
@@ -120,7 +119,7 @@ class InputArgs(BaseObject):
                 # clean up
                 del self._plots[plotTitle]
 
-            except PlotscriptException as e:
+            except self.Exception as e:
                 self._error(e)
                 self._out('Could not plot  ' + str(plotTitle))
                 if self._options['debug']:
@@ -131,7 +130,7 @@ class InputArgs(BaseObject):
         for tableTitle in list(self._tables.keys()):
             tableWriterName = str(self._tables[tableTitle].__class__.__name__)
             # test for base class
-            if not issubclass(self._tables[tableTitle].__class__, BaseTableWriter):
+            if not isinstance(self._tables[tableTitle], _BaseTableWriter):
                 self._error('{0} is not a valid table writer in table {2}'.format(tableWriterName, tableTitle))
 
             try:
@@ -145,7 +144,7 @@ class InputArgs(BaseObject):
                 # clean up
                 del self._tables[tableTitle]
 
-            except PlotscriptException as e:
+            except self.Exception as e:
                 self._error(e)
                 self._out('Could not create table  ' + str(tableTitle))
                 if self._options['debug']:

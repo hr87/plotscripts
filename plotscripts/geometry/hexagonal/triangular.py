@@ -7,9 +7,10 @@ Created on Apr 23, 2013
 import numpy
 import math
 
-from plotscripts.geometry.hexagonal.hexagonal import Hexagonal
+from plotscripts.geometry.hexagonal.hexagonal import Hexagonal as _Hexagonal
 
-class Triangular(Hexagonal):
+
+class Triangular(_Hexagonal):
     """ Class for a triangle hexagonal core """
 
     def __init__(self):
@@ -34,7 +35,7 @@ class Triangular(Hexagonal):
         keys = numpy.arange(0, self._hexPoints.shape[0]).repeat(6)
 
         # get hex corner points
-        cornerPoints = Hexagonal.getClassValuePaths(self)
+        cornerPoints = _Hexagonal.getClassValuePaths(self)
 
         # set start end point
         points[:, :, 0] = self._hexPoints[keys, :]

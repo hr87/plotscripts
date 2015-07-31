@@ -7,9 +7,9 @@ Created on Apr 22, 2013
 import numpy
 import math
 
-from plotscripts.geometry.basegeometry import BaseGeometry
+from plotscripts.geometry.basegeometry import BaseGeometry as _BaseGeometry
 
-class Hexagonal(BaseGeometry):
+class Hexagonal(_BaseGeometry):
     """
     Provides a hexagonal geometry. The numbering of the sections is starting
     at the center and going then mathematical outwards.
@@ -133,7 +133,7 @@ class Hexagonal(BaseGeometry):
         return hexPoints
 
     def _checkInput(self):
-        BaseGeometry._checkInput(self)
+        _BaseGeometry._checkInput(self)
 
         if self.ringEnd is None:
             raise self._exception('No end ring number')

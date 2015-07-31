@@ -9,14 +9,14 @@ A class providing dummy test data, either increasing or random
 import numpy
 import numpy.random
 
-from plotscripts.data.basedata import BaseData
+from plotscripts.data.basedata import BaseData as _BaseData
 
 
-class TestData(BaseData):
+class TestData(_BaseData):
     def __init__(self):
         super().__init__()
 
-    class TestIndex(BaseData.Index):
+    class TestIndex(_BaseData.BaseIndex):
         """ Index class for TestData
         :var calcType: calculation type, 'num' or 'rnd'
         :var num: number of elements

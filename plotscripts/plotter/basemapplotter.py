@@ -4,20 +4,20 @@ Created on Apr 22, 2013
 @author: Hans R Hammer
 """
 
-from plotscripts.base.baseobject import BaseObject
-from plotscripts.plotter.baseplotter import BasePlotter
-from plotscripts.geometry.basegeometry import BaseGeometry
-from plotscripts.data.basedata import BaseData
+from plotscripts.base.basecontainer import BaseContainer as _BaseContainer
+from plotscripts.plotter.baseplotter import BasePlotter as _BasePlotter
+from plotscripts.geometry.basegeometry import BaseGeometry as _BaseGeometry
+from plotscripts.data.basedata import BaseData as _BaseData
 
 import os
 import numpy
 import copy
 
 
-class BaseMapPlotter(BasePlotter):
+class BaseMapPlotter(_BasePlotter):
     """ Basic for all map plotters """
 
-    class Map(BaseObject):
+    class Map(_BaseContainer):
         """ Class to store a map
 
         :var input: index of input data
@@ -45,7 +45,7 @@ class BaseMapPlotter(BasePlotter):
             """ sets the data for the map
             :return: None
             """
-            if not (isinstance(index, BaseData.Index) or isinstance(index, tuple)):
+            if not (isinstance(index, _BaseData.BaseIndex) or isinstance(index, tuple)):
                 raise self._exception('Invalid index object "{0}"'.format(index))
             self._data = copy.deepcopy(index)
 
@@ -75,7 +75,7 @@ class BaseMapPlotter(BasePlotter):
         :param geometryClass: class of geometry
         :return: reference to geometry object
         """
-        if not issubclass(geometryClass, BaseGeometry):
+        if not issubclass(geometryClass, _BaseGeometry):
             raise self._exception(geometryClass.__name__ + 'is not a valid geometry')
         newGeometry = geometryClass()
         self._geometry = newGeometry
@@ -218,10 +218,10 @@ class BaseMapPlotter(BasePlotter):
         raise self._exception('Not implemented in base class')
 
     def _checkInput(self):
-        BasePlotter._checkInput(self)
+        super()._checkInput()
 
         if self._geometry.__class__ == type:
             raise self._exception('I need a instance and not a class definition. Add () to the geometry')
 
-        if not issubclass(self._geometry.__class__, BaseGeometry):
+        if not isinstance(self._geometry, _BaseGeometry):
             raise self._exception(self._geometry.__class__.__name__ + ' is no compatible geometry')

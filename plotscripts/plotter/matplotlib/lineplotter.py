@@ -4,11 +4,12 @@ Created on Apr 11, 2013
 @author: Hans R Hammer
 """
 
-import matplotlib.pyplot as plt
-from plotscripts.plotter.baselineplotter import BaseLinePlotter, Line
+import matplotlib.pyplot as _plt
+from plotscripts.plotter.baselineplotter import BaseLinePlotter as _BaseLinePlotter
+from plotscripts.plotter.baselineplotter import Line as Line
 
 
-class LinePlotter(BaseLinePlotter):
+class LinePlotter(_BaseLinePlotter):
     """
     Basic plotter for two 2D plots using matplotlib
     """
@@ -64,7 +65,7 @@ class LinePlotter(BaseLinePlotter):
         self._out('Creating plot {0}'.format(filename))
 
         # create figure
-        fig = plt.figure()
+        fig = _plt.figure()
         fig.set_dpi(self._getOption('dpi'))
         fig.set_size_inches(self._getOption('size')[0] / self._getOption('dpi')*5/1.5,
                             self._getOption('size')[1] / self._getOption('dpi')*5/1.5,
@@ -88,14 +89,14 @@ class LinePlotter(BaseLinePlotter):
 
         # set labels
         if self.xLabel is None:
-            plt.xlabel(self._data.getXLabel(column))
+            _plt.xlabel(self._data.getXLabel(column))
         else:
-            plt.xlabel(self.xLabel)
+            _plt.xlabel(self.xLabel)
 
         if self.yLabel is None:
-            plt.ylabel(self._data.getYLabel(column, method))
+            _plt.ylabel(self._data.getYLabel(column, method))
         else:
-            plt.ylabel(self.yLabel)
+            _plt.ylabel(self.yLabel)
 
         # set legend location
         axes.legend(loc = self._getOption('legendPos'))
@@ -109,7 +110,7 @@ class LinePlotter(BaseLinePlotter):
 
         # set title
         if self._getOption('title'):
-            plt.title(title)
+            _plt.title(title)
 
         # save figure
         fig.savefig(path + filename, format = self._getOption('format'))

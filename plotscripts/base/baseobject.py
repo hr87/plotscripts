@@ -7,7 +7,7 @@ Provides a base object for all modules.
 All used modules must inherit from this class
 """
 
-from plotscripts.base.exception import PlotscriptException
+from plotscripts.base.exception import PlotscriptException as _PlotscriptException
 
 import inspect
 
@@ -21,6 +21,7 @@ class BaseObject(object):
     :var defaults: dict with default values for options
     :var debugging: option, turns on debbuging for all objects
     """
+
     class Option:
         """ Container class for an option
 
@@ -29,7 +30,8 @@ class BaseObject(object):
         :var description:
         :var visibility: private, down, up, global
         """
-        def __init__(self, name, value, description = '', visibility = 'private'):
+
+        def __init__(self, name, value, description='', visibility='private'):
             """ Contructor
             :param name:
             :param value:
@@ -43,18 +45,18 @@ class BaseObject(object):
             self.visibility = visibility
 
     debugging = False
-    Exception = PlotscriptException
+    Exception = _PlotscriptException
 
     def __init__(self):
         """ Constructor """
-        self._options     = {}       # dict for user set options
-        self._defaults    = {}       # dict for default options
+        self._options = {}  # dict for user set options
+        self._defaults = {}  # dict for default options
 
         self._addDefault('debug', False, 'Turn on debug mode')
         self._addDefault('pathrepl', {'.': '', ' ': '_', '//': '/', '-': '_'},
                          'Characters replaces in file names and paths')
 
-    def setOption(self, name, value, visibility = None, description = None):
+    def setOption(self, name, value, visibility=None, description=None):
         """ set option in the object
         :param name: name of the option
         :param value:
@@ -95,7 +97,6 @@ class BaseObject(object):
     def getOptions(self):
         """
         getting options from an object without overwriting
-        :param pObject: get options from an object, must be a subclass of BaseObject
         """
         return self._options
 
@@ -151,11 +152,11 @@ class BaseObject(object):
         @return: exception
         """
         # get class name
-        module      = self.__class__.__name__
+        module = self.__class__.__name__
         # get function name
-        function    = inspect.stack()[1][3]
+        function = inspect.stack()[1][3]
         # create exception
-        return PlotscriptException(module, function, msg)
+        return self.Exception(module, function, msg)
 
     def _out(self, msg):
         """
@@ -195,8 +196,8 @@ class BaseObject(object):
         :return: None
         """
         # get class name
-        module  = self.__class__.__name__
-        tmpStr  = '{0}: Warning: {1}'.format(module, msg)
+        module = self.__class__.__name__
+        tmpStr = '{0}: Warning: {1}'.format(module, msg)
         print(tmpStr)
 
     def _cleanPath(self, path):

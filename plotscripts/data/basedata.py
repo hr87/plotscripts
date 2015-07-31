@@ -8,12 +8,12 @@ import math
 import numpy
 import enum
 
-from plotscripts.base.baseobject import BaseObject
-from plotscripts.base.basecontainer import BaseContainer
-from plotscripts.plotter.util.functions import axisDiv
+from plotscripts.base.baseobject import BaseObject as _BaseObject
+from plotscripts.base.basecontainer import BaseContainer as _BaseContainer
+from plotscripts.plotter.util.functions import axisDiv as _axisDiv
 
 
-class BaseData(BaseObject):
+class BaseData(_BaseObject):
     """
     Base class for all executioner
     :var dir: base input directory for the data, default = '.'
@@ -33,7 +33,7 @@ class BaseData(BaseObject):
         normalizedDifference = 4
         normalizedDeviation = 5
 
-    class Index(BaseContainer):
+    class BaseIndex(_BaseContainer):
         """ Class to create an index
         :var columns: list or single column
         """
@@ -82,7 +82,7 @@ class BaseData(BaseObject):
         """ Create and return a data index
         :return: an object of StatisticIndex
         """
-        raise BaseObject.Exception('BaseData', 'index', "Not implemented in base class")
+        raise _BaseObject.Exception('BaseData', 'index', "Not implemented in base class")
 
     @staticmethod
     def statisticIndex():
@@ -260,7 +260,7 @@ class BaseData(BaseObject):
             valuesMax = 1
             valuesMin = -1
 
-        valuesDiv = axisDiv(valuesRange, mag)  # divider for axis
+        valuesDiv = _axisDiv(valuesRange, mag)  # divider for axis
 
         # rescale values to rounded values
         mag = mag / valuesDiv

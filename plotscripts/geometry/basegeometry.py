@@ -6,10 +6,10 @@ Created on Apr 22, 2013
 
 import numpy
 
-from plotscripts.base.baseobject import BaseObject
+from plotscripts.base.baseobject import BaseObject as _BaseObject
 
 
-class BaseGeometry(BaseObject):
+class BaseGeometry(_BaseObject):
     """
     classdocs
     """

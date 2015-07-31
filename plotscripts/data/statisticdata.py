@@ -5,10 +5,10 @@ import numpy
 import copy
 import enum
 
-from plotscripts.data.basedata import BaseData
+from plotscripts.data.basedata import BaseData as _BaseData
 
 
-class StatisticData(BaseData):
+class StatisticData(_BaseData):
     """ Class to contain a statistic input
     :var input:
     :var weights:
@@ -43,7 +43,7 @@ class StatisticData(BaseData):
         Fields.avgMin: lambda a, w: (w * a).mean(axis=0) - numpy.sqrt((w * a).var(axis=0))
     }
 
-    class StatisticIndex(BaseData.Index):
+    class StatisticIndex(_BaseData.BaseIndex):
         """ Class for a statistic index, used to retrieve data from a statistic
         :var name: statistic name
         :var field: statistic field, e.g. 'avg'
@@ -73,7 +73,7 @@ class StatisticData(BaseData):
         :param index: index object
         :return:
         """
-        if not isinstance(index, self.Index):
+        if not isinstance(index, self.BaseIndex):
             raise self._exception('Invalid index object "{0}"'.format(index))
         self._input.append(copy.deepcopy(index))
         self._weights.append(weight)

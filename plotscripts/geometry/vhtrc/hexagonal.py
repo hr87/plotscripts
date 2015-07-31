@@ -6,7 +6,7 @@ Created on May 12, 2013
 Geometry module for the vhtrc benchmark
 """
 
-from ..hexagonal.hexagonal import Hexagonal
+from ..hexagonal.hexagonal import Hexagonal as _Hexagonal
 
 
 import math as _math
@@ -14,7 +14,7 @@ import numpy
 import math
 
 
-class VHTRCHexagonal(Hexagonal):
+class VHTRCHexagonal(_Hexagonal):
     """ Geometry class for VHTRC core """
 
     # a few constants for the vhtrc geometry

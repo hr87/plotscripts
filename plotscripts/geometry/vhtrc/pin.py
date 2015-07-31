@@ -4,10 +4,12 @@ Created on May 18, 2013
 @author: Hans R Hammer
 """
 
-from .hexagonal import VHTRCHexagonal
-import numpy, math
+from .hexagonal import VHTRCHexagonal as _VHTRCHexagonal
+import numpy
+import math
 
-class VHTRCPin(VHTRCHexagonal):
+
+class VHTRCPin(_VHTRCHexagonal):
     """ Pin wise resolved VHTRC core """
 
     radiusRod102   = 51.05      # taking hole radius, gap is part of xs
@@ -22,7 +24,7 @@ class VHTRCPin(VHTRCHexagonal):
 
     def setupClassGeometry(self):
         # create block geometry
-        VHTRCHexagonal.setupClassGeometry(self)
+        _VHTRCHexagonal.setupClassGeometry(self)
 
         # create pin locations for blocks
         self.pinPoints    = []  # center points for rods
@@ -61,7 +63,7 @@ class VHTRCPin(VHTRCHexagonal):
 
     def getClassValuePaths(self):
         # get paths of blocks
-        blockPaths = VHTRCHexagonal.getClassValuePaths(self)
+        blockPaths = _VHTRCHexagonal.getClassValuePaths(self)
 
         paths = []
 
@@ -87,7 +89,7 @@ class VHTRCPin(VHTRCHexagonal):
         return numpy.array(paths)
 
     def getClassPathTypes(self):
-        blockTypes = VHTRCHexagonal.getClassPathTypes(self)
+        blockTypes = _VHTRCHexagonal.getClassPathTypes(self)
 
         pathTypes = []
 
@@ -104,7 +106,7 @@ class VHTRCPin(VHTRCHexagonal):
         return pathTypes
 
     def getClassValuePoints(self):
-        blockPoints = VHTRCHexagonal.getClassValuePoints(self)
+        blockPoints = _VHTRCHexagonal.getClassValuePoints(self)
 
         valuePoints = []
 

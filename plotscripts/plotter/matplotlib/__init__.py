@@ -1,1 +1,1 @@
-from plotscripts.plotter.matplotlib.lineplotter import LinePlotter
+from plotscripts.plotter.matplotlib.lineplotter import LinePlotter, Line

@@ -8,16 +8,17 @@ import numpy
 import os
 import copy
 
-from plotscripts.base.baseobject import BaseObject
-from plotscripts.data.basedata import BaseData
+from plotscripts.base.baseobject import BaseObject as _BaseObject
+from plotscripts.base.basecontainer import BaseContainer as _BaseContainer
+from plotscripts.data.basedata import BaseData as _BaseData
 
 
-class BaseTableWriter(BaseObject):
+class BaseTableWriter(_BaseObject):
     """
     Base class for table writers
     """
 
-    class Row(BaseObject):
+    class Row(_BaseContainer):
         """ class for one column
         """
 
@@ -35,7 +36,7 @@ class BaseTableWriter(BaseObject):
         def setIndex(self, index):
             """ set the index
             """
-            if not (isinstance(index, BaseData.Index) or isinstance(index, tuple)):
+            if not (isinstance(index, _BaseData.BaseIndex) or isinstance(index, tuple)):
                 raise self._exception('Invalid index object "{0}"'.format(index))
             self._data = copy.deepcopy(index)
 
@@ -72,7 +73,7 @@ class BaseTableWriter(BaseObject):
         :param index: index object
         :return: None
         """
-        if not isinstance(index, BaseData.Index):
+        if not isinstance(index, _BaseData.BaseIndex):
             raise self._exception('Invalid index object "{0}"'.format(index))
         self._basedata = copy.deepcopy(index)
 

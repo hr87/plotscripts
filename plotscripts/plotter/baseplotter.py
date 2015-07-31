@@ -5,11 +5,11 @@ Created on Apr 11, 2013
 """
 
 import copy
-from plotscripts.base.baseobject import BaseObject
-from plotscripts.data.basedata import BaseData
+from plotscripts.base.baseobject import BaseObject as _BaseObject
+from plotscripts.data.basedata import BaseData as _BaseData
 
 
-class BasePlotter(BaseObject):
+class BasePlotter(_BaseObject):
     """
     Basic Plotter class
     """
@@ -57,7 +57,7 @@ class BasePlotter(BaseObject):
         :param index: index object
         :return: None
         """
-        if not isinstance(index, BaseData.Index):
+        if not isinstance(index, _BaseData.BaseIndex):
             raise self._exception('Invalid index object "{0}"'.format(index))
         self._basedata = copy.deepcopy(index)
 

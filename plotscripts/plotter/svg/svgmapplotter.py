@@ -4,14 +4,14 @@ Created on Apr 24, 2013
 @author: Hans R Hammer
 """
 
-from plotscripts.plotter.basemapplotter import BaseMapPlotter as BaseMap
-from plotscripts.plotter.util.colormap import Colormap
-from plotscripts.plotter.util.axis import Axis
+from plotscripts.plotter.basemapplotter import BaseMapPlotter as _BaseMapPlotter
+from plotscripts.plotter.util.colormap import Colormap as _Colormap
+from plotscripts.plotter.util.axis import Axis as _Axis
 
 import math
 
 
-class MapPlotter(BaseMap):
+class SvgMapPlotter(_BaseMapPlotter):
     """
     classdocs
     """
@@ -60,8 +60,8 @@ class MapPlotter(BaseMap):
         x_size          = self._getOption('size')[0]
         y_size          = self._getOption('size')[1]
 
-        xAxis           = Axis(x_size, 0.1, 0.75, 0.0125)
-        yAxis           = Axis(y_size, 0.1, 0.9, 0.0125, True)
+        xAxis           = _Axis(x_size, 0.1, 0.75, 0.0125)
+        yAxis           = _Axis(y_size, 0.1, 0.9, 0.0125, True)
 
         # get necessary points from geometry
         valuePaths     = self._geometry.getValuePaths()
@@ -105,7 +105,7 @@ class MapPlotter(BaseMap):
         yAxis.setAxis(extrema[2], extrema[3])
 
         # set up color map
-        colormap = Colormap(self._getOption('colormap'))
+        colormap = _Colormap(self._getOption('colormap'))
         colormap.create(lvls)
         colormap.setupGeometry([0.83, 0.1], [0.88, 0.9], 0.0125)
 

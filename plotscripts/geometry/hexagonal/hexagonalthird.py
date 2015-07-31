@@ -6,9 +6,9 @@ Created on May 5, 2013
 
 import numpy
 
-from plotscripts.geometry.hexagonal.hexagonal import Hexagonal
+from plotscripts.geometry.hexagonal.hexagonal import Hexagonal as _Hexagonal
 
-class HexagonalThird(Hexagonal):
+class HexagonalThird(_Hexagonal):
     """
     Class for a third of a hexagonal core
     """
@@ -36,5 +36,5 @@ class HexagonalThird(Hexagonal):
             selection.extend(tmp.tolist())
 
         # select third hex points
-        #selection = list(range(0, 90))
+        # selection = list(range(0, 90))
         self._hexPoints = self._hexPoints[selection, :]

@@ -22,7 +22,7 @@ class SvgMapTest(unittest.TestCase):
     def test_plotter(self):
         inputArgs = plotscripts.InputArgs()
         data = inputArgs.setData(plotscripts.data.TestData)
-        plot = inputArgs.addPlot('svgmap_1', plotscripts.plotter.svg.MapPlotter)
+        plot = inputArgs.addPlot('svgmap_1', plotscripts.plotter.svg.SvgMapPlotter)
         plot.setOption('use_dirs', False)
         plot.setOption('plotdir', outputPath)
         geometry = plot.setGeometry(plotscripts.geometry.rectangular.Rectangular)

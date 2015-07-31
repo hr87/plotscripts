@@ -1,1 +1,1 @@
-from plotscripts.plotter.svg.mapplotter import MapPlotter
+from plotscripts.plotter.svg.svgmapplotter import SvgMapPlotter as SvgMapPlotter

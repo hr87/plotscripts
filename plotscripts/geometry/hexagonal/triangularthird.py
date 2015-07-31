@@ -4,10 +4,11 @@ Created on Jun 26, 2013
 @author: Hans R Hammer
 """
 
-from plotscripts.geometry.hexagonal.hexagonalthird import HexagonalThird
-from plotscripts.geometry.hexagonal.triangular import Triangular
+from plotscripts.geometry.hexagonal.hexagonalthird import HexagonalThird as _HexagonalThird
+from plotscripts.geometry.hexagonal.triangular import Triangular as _Triangular
 
-class TriangularThird(Triangular, HexagonalThird):
+
+class TriangularThird(_Triangular, _HexagonalThird):
     """ Provides a third hexagonal core with triangles """
 
     def __init__(self):
@@ -19,5 +20,5 @@ class TriangularThird(Triangular, HexagonalThird):
 
         :return: None
         """
-        HexagonalThird.setupClassGeometry(self)
+        _HexagonalThird.setupClassGeometry(self)
         self._triPoints = self.calcTriPoints(self._hexPoints, self.pitch, self.shuffleTris)

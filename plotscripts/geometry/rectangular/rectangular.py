@@ -1,15 +1,12 @@
-'''
-Created on Aug 18, 2013
-
-@author: Hans R Hammer
-'''
+""" Rectangular geometry class
+"""
 
 import math
 import numpy
-from plotscripts.geometry.basegeometry import BaseGeometry
+from plotscripts.geometry.basegeometry import BaseGeometry as _BaseGeometry
 
 
-class Rectangular(BaseGeometry):
+class Rectangular(_BaseGeometry):
 
     def __init__(self):
         super().__init__()
