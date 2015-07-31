@@ -153,7 +153,7 @@ class BaseLinePlotter(_BasePlotter):
                 if column is not None:
                     if isinstance(self._basedata, tuple):
                         self._basedata[1].column = column
-                    else:
+                    elif self._basedata is not None:
                         self._basedata.column = column
 
                 # get all data

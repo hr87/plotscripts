@@ -149,7 +149,7 @@ class BaseTableWriter(_BaseObject):
                 if column is not None:
                     if isinstance(self._basedata, tuple):
                         self._basedata[1].column = column
-                    else:
+                    elif self._basedata is not None:
                         self._basedata.column = column
 
                 for method in self.methods:
@@ -188,6 +188,13 @@ class BaseTableWriter(_BaseObject):
 
         for rowInput in self._rows:
             for column in self.columns:
+                # adjust base data column
+                if column is not None:
+                    if isinstance(self._basedata, tuple):
+                        self._basedata[1].column = column
+                    elif self._basedata is not None:
+                        self._basedata.column = column
+
                 for method in self.methods:
                     row = []
                     datakey = rowInput._data
