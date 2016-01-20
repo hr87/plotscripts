@@ -43,6 +43,17 @@ class StatisticData(_BaseData):
         Fields.avgMin: lambda a, w: (w * a).mean(axis=0) - numpy.sqrt((w * a).var(axis=0))
     }
 
+    _nanMethods = {            # dict with all functions to calc statistic ignoring nans
+        Fields.avg: lambda a, w: numpy.nanmean(a * w, axis=0),
+        Fields.sum: lambda a, w: numpy.nansum(a, axis=0),
+        Fields.min: lambda a, w: numpy.nanmin(a, axis=0),
+        Fields.max: lambda a, w: numpy.nanmax(a, axis=0),
+        Fields.variance: lambda a, w: numpy.nanvar(a * w, axis=0),
+        Fields.sigma: lambda a, w: numpy.sqrt(numpy.nanvar(a * w, axis=0)),
+        Fields.avgMax: lambda a, w: numpy.nanmean(a * w, axis=0) + numpy.sqrt(numpy.nanvar(a * w, axis=0)),
+        Fields.avgMin: lambda a, w: numpy.nanmean(a * w, axis=0) - numpy.sqrt(numpy.nanvar(a * w, axis=0))
+    }
+
     class StatisticIndex(_BaseData.BaseIndex):
         """ Class for a statistic index, used to retrieve data from a statistic
         :var name: statistic name
@@ -68,6 +79,10 @@ class StatisticData(_BaseData):
         self._data      = {}
         self.ref        = None
 
+        # options
+        self._addDefault('mode', 'standard', 'standard - standard calculation, '
+                                               'ignoreNaN - Ignore NaN fields in calculation of statistics', 'private')
+
     def addInput(self, index, weight=1.0):
         """ Add an input to this statistic
         :param index: index object
@@ -85,11 +100,19 @@ class StatisticData(_BaseData):
         self._out('Preparing statistic "{0}"'.format(self.name))
         # set up weights
         self._weights = numpy.array(self._weights).reshape(len(self._weights), 1)
+
+        # set calculation mode
+        if self._getOption('mode').lower() == 'ignorenan':
+            calcMethods = self._nanMethods
+        else:
+            calcMethods = self._calcMethods
+
         # loop over all inputs
         try:
             for column in self.columns:
                 tmpData = []
                 for idx, index in enumerate(self._input):
+                    index = copy.deepcopy(index)
                     if column is not None:
                         index.column = column
                     if self.method is not None:
@@ -105,7 +128,7 @@ class StatisticData(_BaseData):
                 # add values
                 self._data[column] = {}
                 for calc in self.Fields:
-                    self._data[column][calc] = self._calcMethods[calc](tmpData, self._weights)
+                    self._data[column][calc] = calcMethods[calc](tmpData, self._weights)
 
         except self.Exception as e:
             raise self._exception('Could not calculate statistic "{0}"'.format(self.name)) from e
