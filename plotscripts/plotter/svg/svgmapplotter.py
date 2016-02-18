@@ -37,6 +37,7 @@ class SvgMapPlotter(_BaseMapPlotter):
         self._addDefault('text_for_up', '{0:.2e}', 'upper value format string', 'private')
 
         # setting for axis and legend
+        self._addDefault('show_ticks', True, 'Show scale tick labels', 'private')
         self._addDefault('leg_lim_low', 0.01, 'lower limit for value format strings', 'private')
         self._addDefault('leg_lim_mid', 1, 'middle limit for value format strings', 'private')
         self._addDefault('leg_lim_up', 1e4, 'upper limit for value format strings', 'private')
@@ -127,7 +128,7 @@ class SvgMapPlotter(_BaseMapPlotter):
         textPoints[:, 1] = yAxis.convertPoints(textPoints[:, 1])
 
         # open file
-        try :
+        try:
             svgFile = open(path + '/' + filename + '.svg', 'w')
         except IOError as e:
             raise self._exception('Could not open file ' + filename + '.svg' ) from e
@@ -197,52 +198,54 @@ class SvgMapPlotter(_BaseMapPlotter):
             ticStart2   = yAxis.getEnd()
             ticEnd2     = ticStart2 - xAxis.tic_length * yAxis.size
 
+
             svgFile.write('<g id="axis">\n')
-            for idx in range(tics.shape[0]):
-                tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
-                    ticPos[idx], ticStart,
-                    ticPos[idx], ticEnd,
-                    self._getOption('lineWidth'))
-                svgFile.write(tmpStr)
-                tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
-                    ticPos[idx], ticStart2,
-                    ticPos[idx], ticEnd2,
-                    self._getOption('lineWidth'))
-                svgFile.write(tmpStr)
+            if self._getOption('show_ticks'):
+                for idx in range(tics.shape[0]):
+                    tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
+                        ticPos[idx], ticStart,
+                        ticPos[idx], ticEnd,
+                        self._getOption('lineWidth'))
+                    svgFile.write(tmpStr)
+                    tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
+                        ticPos[idx], ticStart2,
+                        ticPos[idx], ticEnd2,
+                        self._getOption('lineWidth'))
+                    svgFile.write(tmpStr)
 
-                value = self.formatValue('leg', tics[idx])
-                tmpStr = '<text x="{0:.0f}" y="{1:.0f}" font-size = "{2}" text-anchor="middle">{3}</text>\n'.format(
-                    ticPos[idx], pos_x_tics * yAxis.size,
-                    fontSize,
-                    value)
-                svgFile.write(tmpStr)
+                    value = self.formatValue('leg', tics[idx])
+                    tmpStr = '<text x="{0:.0f}" y="{1:.0f}" font-size = "{2}" text-anchor="middle">{3}</text>\n'.format(
+                        ticPos[idx], pos_x_tics * yAxis.size,
+                        fontSize,
+                        value)
+                    svgFile.write(tmpStr)
 
-            # write y axis tics
-            tics        = yAxis.getTics()
-            ticPos      = yAxis.getTicPos()
-            ticStart    = xAxis.getStart()
-            ticEnd      = ticStart + yAxis.tic_length * xAxis.size
-            ticStart2   = xAxis.getEnd()
-            ticEnd2     = ticStart2 - yAxis.tic_length * xAxis.size
+                # write y axis tics
+                tics        = yAxis.getTics()
+                ticPos      = yAxis.getTicPos()
+                ticStart    = xAxis.getStart()
+                ticEnd      = ticStart + yAxis.tic_length * xAxis.size
+                ticStart2   = xAxis.getEnd()
+                ticEnd2     = ticStart2 - yAxis.tic_length * xAxis.size
 
-            for idx in range(tics.shape[0]):
-                tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
-                    ticStart, ticPos[idx],
-                    ticEnd, ticPos[idx],
-                    self._getOption('lineWidth'))
-                svgFile.write(tmpStr)
-                tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
-                    ticStart2, ticPos[idx],
-                    ticEnd2, ticPos[idx],
-                    self._getOption('lineWidth'))
-                svgFile.write(tmpStr)
+                for idx in range(tics.shape[0]):
+                    tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
+                        ticStart, ticPos[idx],
+                        ticEnd, ticPos[idx],
+                        self._getOption('lineWidth'))
+                    svgFile.write(tmpStr)
+                    tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {3:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(
+                        ticStart2, ticPos[idx],
+                        ticEnd2, ticPos[idx],
+                        self._getOption('lineWidth'))
+                    svgFile.write(tmpStr)
 
-                value = self.formatValue('leg', tics[idx])
-                tmpStr = '<text x="{0:.0f}" y="{1:.0f}" font-size = "{2}" text-anchor="middle">{3}</text>\n'.format(
-                    pos_y_tics * yAxis.size, ticPos[idx] + fontOffset,
-                    fontSize,
-                    value)
-                svgFile.write(tmpStr)
+                    value = self.formatValue('leg', tics[idx])
+                    tmpStr = '<text x="{0:.0f}" y="{1:.0f}" font-size = "{2}" text-anchor="middle">{3}</text>\n'.format(
+                        pos_y_tics * yAxis.size, ticPos[idx] + fontOffset,
+                        fontSize,
+                        value)
+                    svgFile.write(tmpStr)
 
             # write axis frame
             tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {1:.0f} L {2:.0f} {3:.0f} L {0:.0f} {3:.0f} L {0:.0f} {1:.0f}" stroke = "black" stroke-width = "{4}" fill = "none"/>\n'.format(

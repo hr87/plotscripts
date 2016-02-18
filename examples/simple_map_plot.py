@@ -5,9 +5,10 @@ import plotscripts.geometry.rectangular as geometry
 inputArgs = plotscripts.InputArgs()
 inputArgs.setData(plotscripts.data.TestData)
 
-plot = inputArgs.addPlot('svgmap_1', svgplotter.MapPlotter)
+plot = inputArgs.addPlot('svgmap_1', svgplotter.SvgMapPlotter)
 plot.setOption('use_dirs', False)       # do not create folder structure
 plot.setOption('plotdir', '.')          # output folder
+plot.setOption('show_ticks', False)     # no axis ticks
 
 geometry = plot.setGeometry(geometry.Rectangular)   # add gemoetry information
 geometry.pitch = 10                     # set width of blocks
