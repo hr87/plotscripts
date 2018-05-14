@@ -276,14 +276,13 @@ class SvgMapPlotter(_BaseMapPlotter):
             # write color bar
             svgFile.write('<g id="colorbar">\n')
             for idx in range(colormap.numSteps):
+                color = colormap.getColor(colormap.lvls[-1 - idx])
                 tmpStr = '<path d = "M {0:.0f} {1:.0f} L {2:.0f} {1:.0f} L {2:.0f} {3:.0f} L {0:.0f} {3:.0f} L {0:.0f} {1:.0f}" stroke = "none" fill = "rgb({4:.0f}, {5:.0f}, {6:.0f})"/>\n'.format(
                     colormap.xStart * x_size,
                     colormap.positions[idx] * y_size,
                     colormap.xEnd * x_size,
                     colormap.positions[idx + 1] * y_size,
-                    colormap.colors[colormap.numSteps - idx - 1, 0],
-                    colormap.colors[colormap.numSteps - idx - 1, 1],
-                    colormap.colors[colormap.numSteps - idx - 1, 2])
+                    color[0], color[1], color[2])
 
                 svgFile.write(tmpStr)
 

@@ -53,6 +53,7 @@ class BaseObject(object):
         self._defaults = {}  # dict for default options
 
         self._addDefault('debug', False, 'Turn on debug mode')
+        self._addDefault('quiet', False, 'Opress output')
         self._addDefault('pathrepl', {'.': '', ' ': '_', '//': '/', '-': '_'},
                          'Characters replaces in file names and paths')
 
@@ -164,6 +165,7 @@ class BaseObject(object):
         :param msg: message text
         """
         # get class name
+        # if not self._getOption('quiet'):
         module = self.__class__.__name__
         tmpStr = '{0}: {1}'.format(module, msg)
         print(tmpStr)

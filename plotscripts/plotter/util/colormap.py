@@ -10,6 +10,9 @@ import math
 from plotscripts.plotter.util.functions import axisDiv
 from plotscripts.base.baseobject import BaseObject
 
+import matplotlib.colors
+import matplotlib.cm
+
 class Colormap(BaseObject):
     """
     Class for creating a colormap
@@ -23,18 +26,13 @@ class Colormap(BaseObject):
         """
         super().__init__()
         self.type = cmType.lower()
+        self.cmap = None
 
     def getColor(self, value):
         if math.isnan(value):
             return self.nanColor
         else :
-            idx = self.lvls.searchsorted(value) - 1
-            if(idx < 0):
-                idx = 0
-            try:
-                return self.colors[idx, :]
-            except IndexError as e:
-                raise self._exception('Linking value {0} to color failed'.format(value)) from e
+            return numpy.round(numpy.array(self.cmap.to_rgba(value)[:-1]) * 255)
 
     def getTextColor(self, value):
         if value < self.fontMid:
@@ -45,53 +43,18 @@ class Colormap(BaseObject):
     def getOverlayColor(self):
         return self.overlayColor
 
-    def create(self, lvl, cmType = None):
-        # assign new standard color map
-        if not cmType == None :
-            self.type = cmType.lower()
-
-        if self.type == 'hsv':
-            self.createHSV(lvl)
-        else :
-            raise self._exception('Color map type unknown')
-
-    def createHSV(self, lvls):
+    def create(self, lvls, cmType=None):
         self.lvls = lvls
         self.numSteps = lvls.shape[0] - 1
 
-        # calc http://en.wikipedia.org/wiki/HSL_and_HSV#From_HSV
-        v = 1
-        s = 1
-
-        h = 360.0 / (lvls[-1] - lvls[0]) * lvls[0:-1] / 60.0
-        h -= h[1]        # shift first value to 0
-        c = v * s
-        x = c * (1-numpy.absolute( (h-1) % 2 - 1))
-
-        self.colors = numpy.zeros((self.numSteps, 3))
-
-        for idx in range(self.numSteps):
-            if h[idx] <= 1 :                      # dark blue
-                self.colors[idx, :] = numpy.array([0, 0, (1.0 - x[idx]) / 2.0 + 0.5])
-            elif h[idx] <= 2 :                 # blue
-                self.colors[idx, :] = numpy.array([0, x[idx], c])
-            elif h[idx] <= 3 :                  # green
-                self.colors[idx, :] = numpy.array([0, c, x[idx]])
-            elif h[idx] <= 4 :                  # yellow
-                self.colors[idx, :] = numpy.array([x[idx], c, 0])
-            elif h[idx] <= 5 :                  # red
-                self.colors[idx, :] = numpy.array([c, x[idx], 0])
-            else :                                 # dark red
-                self.colors[idx, :] = numpy.array([(1.0 - x[idx]) / 2.0 + 0.5, 0, 0])
-
-        # last step and scale to 0,255
-        self.colors += (v - c);
-        self.colors *= 255;
+        # assign new standard color map
+        c_norm = matplotlib.colors.Normalize(vmin=lvls[0], vmax=lvls[-1])
+        self.cmap = matplotlib.cm.ScalarMappable(norm=c_norm, cmap=matplotlib.cm.viridis)
 
         self.nanColor = numpy.array([255, 255, 255])
 
         # setting up colors for font
-        self.fontColor  = [[255, 0, 0], [0, 0, 0]]
+        self.fontColor  = [self.getColor(lvls[-1]), self.getColor(lvls[0])]
         self.fontMid    = lvls[round((self.numSteps + 1.0) / 2.0)]
 
         # setting overlay color
